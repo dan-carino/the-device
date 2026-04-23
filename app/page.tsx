@@ -212,6 +212,40 @@ export default function Home() {
     return () => clearInterval(t);
   }, []);
 
+  // ── Mouse tilt + dynamic glare ───────────────────────────────────
+  // Direct DOM refs — zero React re-renders on mousemove
+  const deviceRef   = useRef<HTMLDivElement>(null);
+  const glareRef    = useRef<HTMLDivElement>(null);
+  const tiltRafRef  = useRef<number | null>(null);
+
+  const BASE_TRANSFORM = "perspective(1100px) rotateX(2.5deg) rotateY(0deg)";
+  const BASE_GLARE     = "radial-gradient(ellipse 65% 50% at 38% 28%, rgba(255,255,255,0.055) 0%, rgba(255,255,255,0.018) 45%, transparent 70%)";
+
+  const handleDeviceMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    if (tiltRafRef.current) return; // one update per frame
+    const rect = e.currentTarget.getBoundingClientRect();
+    const nx = (e.clientX - rect.left - rect.width  / 2) / (rect.width  / 2); // –1…1
+    const ny = (e.clientY - rect.top  - rect.height / 2) / (rect.height / 2); // –1…1
+    tiltRafRef.current = requestAnimationFrame(() => {
+      if (deviceRef.current) {
+        deviceRef.current.style.transform =
+          `perspective(1100px) rotateX(${2.5 - ny * 2.8}deg) rotateY(${nx * 4}deg)`;
+      }
+      if (glareRef.current) {
+        // Glare travels upper-left → lower-right as mouse sweeps across
+        glareRef.current.style.background =
+          `radial-gradient(ellipse 65% 50% at ${38 + nx * 22}% ${28 + ny * 18}%, rgba(255,255,255,0.072) 0%, rgba(255,255,255,0.02) 45%, transparent 70%)`;
+      }
+      tiltRafRef.current = null;
+    });
+  }, []);
+
+  const handleDeviceMouseLeave = useCallback(() => {
+    if (tiltRafRef.current) { cancelAnimationFrame(tiltRafRef.current); tiltRafRef.current = null; }
+    if (deviceRef.current)  deviceRef.current.style.transform  = BASE_TRANSFORM;
+    if (glareRef.current)   glareRef.current.style.background  = BASE_GLARE;
+  }, []);
+
   // Lock-in overlay colours — RARE (Borg) gets amber warning, others get phosphor green
   const lockInColors = lockInEntity.rarity === "RARE"
     ? { glow: "rgba(255,153,0,0.22)", label: "rgba(255,153,0,0.7)", name: "#FF9900", nameShadow: "0 0 28px rgba(255,153,0,0.9), 0 0 10px rgba(255,153,0,0.7)", bio: "rgba(255,153,0,0.55)" }
@@ -291,31 +325,34 @@ export default function Home() {
       </div>
 
       {/* ── The Device ─────────────────────────────────────────── */}
-      <div onPointerDown={ensureAudio} style={{
-        position: "relative",
-        width: 780,
-        height: 520,
-        borderRadius: 18,
-        // Directional body gradient — light from upper-left
-        background: "linear-gradient(148deg, #282626 0%, #1e1c1c 35%, #181616 65%, #131111 100%)",
-        // Multi-layer shadow: contact → near → mid → ambient penumbra
-        boxShadow: `
-          0 0 0 1px rgba(255,255,255,0.055),
-          0 1px 2px rgba(0,0,0,0.95),
-          0 4px 10px rgba(0,0,0,0.85),
-          0 14px 30px rgba(0,0,0,0.65),
-          0 30px 60px rgba(0,0,0,0.45),
-          0 60px 100px rgba(0,0,0,0.28),
-          0 100px 140px rgba(0,0,0,0.16),
-          -3px 6px 20px rgba(0,0,0,0.4)
-        `,
-        // Slight perspective tilt — like you're looking down at the device on a desk
-        transform: "perspective(1100px) rotateX(2.5deg)",
-        transformOrigin: "center 55%",
-        display: "flex",
-        flexDirection: "column",
-        overflow: "hidden",
-      }}>
+      <div
+        ref={deviceRef}
+        onPointerDown={ensureAudio}
+        onMouseMove={handleDeviceMouseMove}
+        onMouseLeave={handleDeviceMouseLeave}
+        style={{
+          position: "relative",
+          width: 780,
+          height: 520,
+          borderRadius: 18,
+          background: "linear-gradient(148deg, #282626 0%, #1e1c1c 35%, #181616 65%, #131111 100%)",
+          boxShadow: `
+            0 0 0 1px rgba(255,255,255,0.055),
+            0 1px 2px rgba(0,0,0,0.95),
+            0 4px 10px rgba(0,0,0,0.85),
+            0 14px 30px rgba(0,0,0,0.65),
+            0 30px 60px rgba(0,0,0,0.45),
+            0 60px 100px rgba(0,0,0,0.28),
+            0 100px 140px rgba(0,0,0,0.16),
+            -3px 6px 20px rgba(0,0,0,0.4)
+          `,
+          transform: BASE_TRANSFORM,
+          transformOrigin: "center 55%",
+          transition: "transform 0.18s ease-out",
+          display: "flex",
+          flexDirection: "column",
+          overflow: "hidden",
+        }}>
 
         {/* Top edge highlight — bright, catches the key light */}
         <div style={{
@@ -339,6 +376,20 @@ export default function Home() {
           background: "linear-gradient(180deg, transparent 0%, rgba(255,255,255,0.09) 20%, rgba(255,255,255,0.09) 80%, transparent 100%)",
           zIndex: 10,
         }} />
+
+        {/* ── Dynamic glare — shifts with mouse to simulate overhead light ── */}
+        <div
+          ref={glareRef}
+          style={{
+            position: "absolute",
+            inset: 0,
+            borderRadius: 18,
+            background: BASE_GLARE,
+            pointerEvents: "none",
+            zIndex: 6,
+            // transition handled by RAF for perf; only transition on mouse-leave
+          }}
+        />
 
         {/* Bottom edge — in shadow, darker */}
         <div style={{
