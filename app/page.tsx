@@ -5,7 +5,7 @@ import RotaryDial from "@/components/RotaryDial";
 import Slider from "@/components/Slider";
 import ToggleSwitch from "@/components/ToggleSwitch";
 import Oscilloscope from "@/components/Oscilloscope";
-import { resolveEntity, getBiggestGapHint, getNearestUnfound } from "@/data/entities";
+import { resolveEntity, getBiggestGapHint, getNearestUnfound, getSwitchIssue } from "@/data/entities";
 import {
   startAmbientHum,
   playInitScan,
@@ -49,8 +49,8 @@ export default function Home() {
 
   // Entity proximity — recalculates on every control change
   const resolution = useMemo(
-    () => resolveEntity({ freqMod, resCoeff, phaseShift, gain }),
-    [freqMod, resCoeff, phaseShift, gain]
+    () => resolveEntity({ freqMod, resCoeff, phaseShift, gain, bandFilter, polarity, scanMode }),
+    [freqMod, resCoeff, phaseShift, gain, bandFilter, polarity, scanMode]
   );
 
   const { nearestEntity, nearestProximity } = resolution;
@@ -168,27 +168,40 @@ export default function Home() {
       }
     } else {
       // Below entityFound threshold — always hint toward the nearest UNFOUND species.
-      // Proximity bands are based on how close the unfound entity is, not the found one.
-      // Computed inline so hints update fresh each run without adding control values to deps.
-      const unfound = getNearestUnfound({ freqMod, resCoeff, phaseShift, gain }, foundIds);
+      const state = { freqMod, resCoeff, phaseShift, gain, bandFilter, polarity, scanMode };
+      const unfound = getNearestUnfound(state, foundIds);
       if (!unfound) {
         msg = "All five species catalogued. Remarkable work, Ensign.";
-      } else if (unfound.proximity >= 0.5) {
-        const hint = getBiggestGapHint({ freqMod, resCoeff, phaseShift, gain }, unfound.entity);
-        msg = `Almost there. Something is resolving. Fine-tune your ${hint.name} — bring it ${hint.dir}.`;
-      } else if (unfound.proximity >= 0.3) {
-        const hint = getBiggestGapHint({ freqMod, resCoeff, phaseShift, gain }, unfound.entity);
-        msg = `Hold on — I'm reading a biosignature. Your ${hint.name} is off. Adjust it ${hint.dir} and hold your position.`;
-      } else if (unfound.proximity >= 0.1) {
-        const hint = getBiggestGapHint({ freqMod, resCoeff, phaseShift, gain }, unfound.entity);
-        msg = `Something faint on the edge of sensors. Start with your ${hint.name} — try turning it ${hint.dir}.`;
       } else {
-        const hint = getBiggestGapHint({ freqMod, resCoeff, phaseShift, gain }, unfound.entity);
-        msg = `Nothing on sensors yet. Try adjusting your ${hint.name} — bring it ${hint.dir}.`;
+        const hint = getBiggestGapHint(state, unfound.entity);
+        const switchIssue = getSwitchIssue(state, unfound.entity);
+
+        // Switch hint lines — oblique, no explicit setting named
+        const switchLine = switchIssue === "polarity"
+          ? "The signal keeps inverting on us — something in the configuration is working against the lock."
+          : switchIssue === "scanMode"
+          ? "The scan depth isn't cutting through this signature. We may need a different approach entirely."
+          : null;
+
+        if (unfound.proximity >= 0.5) {
+          msg = switchLine
+            ? `Almost there — your ${hint.name} is close. But ${switchLine.toLowerCase()}`
+            : `Almost there. Something is resolving. Fine-tune your ${hint.name} — bring it ${hint.dir}.`;
+        } else if (unfound.proximity >= 0.3) {
+          msg = switchLine
+            ? `I'm reading something. ${switchLine} Also try your ${hint.name} — bring it ${hint.dir}.`
+            : `Hold on — I'm reading a biosignature. Your ${hint.name} is off. Adjust it ${hint.dir} and hold your position.`;
+        } else if (unfound.proximity >= 0.1) {
+          msg = switchLine
+            ? `Something faint out there. ${switchLine}`
+            : `Something faint on the edge of sensors. Start with your ${hint.name} — try turning it ${hint.dir}.`;
+        } else {
+          msg = `Nothing on sensors yet. Try adjusting your ${hint.name} — bring it ${hint.dir}.`;
+        }
       }
     }
     setBriefingText(msg);
-  }, [scanning, entityFound, nearestProximity, idleIndex, nearestEntity, foundIds, lockInActive, lockInShownThisVisit]);
+  }, [scanning, entityFound, nearestProximity, idleIndex, nearestEntity, foundIds, lockInActive, lockInShownThisVisit, bandFilter, polarity, scanMode]);
 
   // Typewriter — reruns whenever briefingText changes
   useEffect(() => {
