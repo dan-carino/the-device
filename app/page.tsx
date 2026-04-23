@@ -103,20 +103,29 @@ export default function Home() {
   // Lock-in state — the dramatic freeze-frame on first contact
   const [lockInActive, setLockInActive] = useState(false);
   const [lockInEntity, setLockInEntity] = useState(nearestEntity);
+  // True while the user is still on an entity they just found this session —
+  // prevents "already catalogued" showing before they've moved the controls
+  const [lockInShownThisVisit, setLockInShownThisVisit] = useState(false);
 
   // Track catalogued species — only trigger lock-in once per species
   useEffect(() => {
     if (entityFound && !prevEntityFoundRef.current) {
+      // Rising edge: entity just entered resolution
       if (!foundIdsRef.current.has(nearestEntity.id)) {
-        // First detection of this species — celebrate
+        // First detection — celebrate
         foundIdsRef.current.add(nearestEntity.id);
         setFoundIds(ids => [...ids, nearestEntity.id]);
         setLockInEntity(nearestEntity);
         setLockInActive(true);
+        setLockInShownThisVisit(true);
         if (lockInTimerRef.current) clearTimeout(lockInTimerRef.current);
         lockInTimerRef.current = setTimeout(() => setLockInActive(false), 2800);
       }
-      // If already catalogued — do nothing, no lock-in, no sound
+      // Already catalogued revisit — do nothing
+    }
+    if (!entityFound && prevEntityFoundRef.current) {
+      // Falling edge: entity dropped out of resolution — clear the visit flag
+      setLockInShownThisVisit(false);
     }
     prevEntityFoundRef.current = entityFound;
   }, [entityFound, nearestEntity]);
@@ -134,7 +143,9 @@ export default function Home() {
     if (!scanning) {
       msg = IDLE_MESSAGES[idleIndex];
     } else if (entityFound) {
-      const alreadyCatalogued = foundIds.includes(nearestEntity.id) && !lockInActive;
+      // "Already catalogued" only after user has moved away and returned —
+      // not while they're still sitting on the species that just resolved
+      const alreadyCatalogued = foundIds.includes(nearestEntity.id) && !lockInActive && !lockInShownThisVisit;
       const remaining = 5 - foundIds.length;
       if (alreadyCatalogued) {
         msg = remaining > 0
@@ -165,7 +176,7 @@ export default function Home() {
       msg = "Nothing on sensors yet. The frequency modulation dial is your broadest search parameter. Start there.";
     }
     setBriefingText(msg);
-  }, [scanning, entityFound, nearestProximity, idleIndex, nearestEntity, foundIds, lockInActive]);
+  }, [scanning, entityFound, nearestProximity, idleIndex, nearestEntity, foundIds, lockInActive, lockInShownThisVisit]);
 
   // Typewriter — reruns whenever briefingText changes
   useEffect(() => {
