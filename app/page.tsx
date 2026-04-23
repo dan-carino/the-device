@@ -156,7 +156,7 @@ export default function Home() {
         if (nearestEntity.rarity === "RARE") {
           msg = `All stations. That is a ${nearestEntity.name} collective signature. Class Omega. ${nearestEntity.bioReading}. Do not move those dials. Log it now.`;
         } else if (nearestEntity.rarity === "UNCOMMON") {
-          msg = remaining > 1
+          msg = remaining > 0
             ? `Commander — ${nearestEntity.name} signature confirmed. ${nearestEntity.bioReading}. Unexpected. Log it. ${remaining} species remaining.`
             : `${nearestEntity.name} confirmed — and that's the last one. ${nearestEntity.bioReading}. Sector catalogue complete.`;
         } else {
