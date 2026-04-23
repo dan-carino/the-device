@@ -77,16 +77,155 @@ export default function Home() {
     ? Math.round(nearestProximity * 100)
     : Math.round((freqMod * 0.6 + gain * 0.4) * 100);
 
+  // ── Commander briefing system ────────────────────────────────────
+  const IDLE_MESSAGES = [
+    "Ensign. The device before you is a Class IV bio-scanner. We're detecting anomalous subspace signatures in this sector. Initialise a scan when ready.",
+    "Primary search parameters: frequency modulation and resonance coefficient. Phase shift controls dimensional depth. You'll need all three axes to isolate a contact.",
+    "Intel suggests multiple life forms are present in this region. Some are common. Some have never been classified. The scanner will find them — if you know how to use it.",
+    "These readings don't announce themselves. You have to go looking. Adjust the dials, initialise a scan, and pay attention to what the oscilloscope tells you.",
+  ];
+
+  const [idleIndex, setIdleIndex] = useState(0);
+  const [foundCount, setFoundCount] = useState(0);
+  const [briefingText, setBriefingText] = useState(IDLE_MESSAGES[0]);
+  const [displayedText, setDisplayedText] = useState("");
+  const [cursorOn, setCursorOn] = useState(true);
+  const typewriterRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const prevEntityFoundRef = useRef(false);
+
+  // Track total entities found across scans
+  useEffect(() => {
+    if (entityFound && !prevEntityFoundRef.current) {
+      setFoundCount(c => c + 1);
+    }
+    prevEntityFoundRef.current = entityFound;
+  }, [entityFound]);
+
+  // Cycle idle messages when not scanning
+  useEffect(() => {
+    if (scanning) return;
+    const t = setInterval(() => setIdleIndex(i => (i + 1) % IDLE_MESSAGES.length), 9000);
+    return () => clearInterval(t);
+  }, [scanning]);
+
+  // Select the right message based on device state
+  useEffect(() => {
+    let msg = "";
+    if (!scanning) {
+      msg = IDLE_MESSAGES[idleIndex];
+    } else if (entityFound) {
+      const remaining = 5 - foundCount;
+      msg = foundCount <= 1
+        ? `Contact. ${nearestEntity.name}. ${nearestEntity.class}. ${nearestEntity.bioReading}. Log it, Ensign. There are four more out there.`
+        : remaining > 0
+          ? `${nearestEntity.name} confirmed. ${foundCount} of 5 entities logged. The rarest configurations require precise multi-axis tuning. Keep scanning.`
+          : `${nearestEntity.name}. That's all five. Remarkable work, Ensign. This sector's catalogue is complete.`;
+    } else if (nearestProximity >= 0.5) {
+      msg = "Something is resolving on sensors. Stay with it — adjust carefully. Don't let it slip.";
+    } else if (nearestProximity >= 0.3) {
+      msg = "Hold on. I'm reading a biosignature. Don't change course — fine-tune the resonance coefficient and hold your position.";
+    } else if (nearestProximity >= 0.1) {
+      msg = "Something on the edge of sensors. Faint. Adjust your parameters carefully — these readings are unstable.";
+    } else {
+      msg = "Nothing on sensors yet. The frequency modulation dial is your broadest search parameter. Start there.";
+    }
+    setBriefingText(msg);
+  }, [scanning, entityFound, nearestProximity, idleIndex, nearestEntity, foundCount]);
+
+  // Typewriter — reruns whenever briefingText changes
+  useEffect(() => {
+    if (typewriterRef.current) clearTimeout(typewriterRef.current);
+    setDisplayedText("");
+    let i = 0;
+    const type = () => {
+      i++;
+      setDisplayedText(briefingText.slice(0, i));
+      if (i < briefingText.length) {
+        typewriterRef.current = setTimeout(type, 22);
+      }
+    };
+    // Small initial delay so message doesn't start mid-transition
+    typewriterRef.current = setTimeout(type, 120);
+    return () => { if (typewriterRef.current) clearTimeout(typewriterRef.current); };
+  }, [briefingText]);
+
+  // Cursor blink
+  useEffect(() => {
+    const t = setInterval(() => setCursorOn(v => !v), 530);
+    return () => clearInterval(t);
+  }, []);
+
   return (
     <main style={{
       width: "100vw",
-      height: "100vh",
+      minHeight: "100vh",
       background: "#f0eeeb",
       display: "flex",
+      flexDirection: "column",
       alignItems: "center",
       justifyContent: "center",
-      overflow: "hidden",
+      padding: "32px 0",
+      boxSizing: "border-box",
     }}>
+
+      {/* ── Commander briefing ─────────────────────────────────── */}
+      <div style={{
+        width: 780,
+        marginBottom: 8,
+        display: "flex",
+        flexDirection: "column",
+        gap: 10,
+      }}>
+        {/* Speaker line */}
+        <div style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}>
+          <span style={{
+            fontFamily: "var(--font-lcars, 'Courier New', monospace)",
+            fontSize: 9,
+            letterSpacing: "0.14em",
+            color: "#999",
+            textTransform: "uppercase",
+          }}>
+            CMDR. W. RIKER · USS ENTERPRISE-D · NCC-1701-D
+          </span>
+          <span style={{
+            fontFamily: "var(--font-lcars, 'Courier New', monospace)",
+            fontSize: 9,
+            letterSpacing: "0.1em",
+            color: "#bbb",
+          }}>
+            SD {foundCount > 0 ? `47634.44 · ${foundCount}/5 LOGGED` : "47634.44"}
+          </span>
+        </div>
+
+        {/* Thin rule */}
+        <div style={{
+          height: 1,
+          background: "linear-gradient(90deg, rgba(200,140,0,0.4) 0%, rgba(200,140,0,0.15) 60%, transparent 100%)",
+        }} />
+
+        {/* Briefing text */}
+        <p style={{
+          fontFamily: "var(--font-lcars, 'Courier New', monospace)",
+          fontSize: 13,
+          lineHeight: 1.65,
+          color: "#1a1a1a",
+          margin: 0,
+          minHeight: "2.8em",
+          letterSpacing: "0.01em",
+        }}>
+          {displayedText}
+          <span style={{
+            opacity: cursorOn ? 1 : 0,
+            color: "rgba(200,120,0,0.8)",
+            fontWeight: "bold",
+            transition: "opacity 0.1s",
+          }}>▋</span>
+        </p>
+      </div>
 
       {/* ── The Device ─────────────────────────────────────────── */}
       <div onPointerDown={ensureAudio} style={{
