@@ -786,8 +786,8 @@ export default function Home() {
                 style={{
                   height: 34,
                   background: scanning
-                    ? "rgba(0,255,136,0.15)"
-                    : "rgba(204,102,0,0.3)",
+                    ? "radial-gradient(ellipse 80% 60% at 50% 50%, rgba(0,255,136,0.28) 0%, rgba(0,255,136,0.08) 60%, rgba(0,255,136,0.03) 100%)"
+                    : "radial-gradient(ellipse 80% 60% at 50% 50%, rgba(255,153,0,0.45) 0%, rgba(204,102,0,0.2) 60%, rgba(180,80,0,0.05) 100%)",
                   border: `1px solid ${scanning ? "var(--lcars-phosphor)" : "var(--lcars-amber)"}`,
                   borderRadius: 6,
                   display: "flex", alignItems: "center", justifyContent: "center",
