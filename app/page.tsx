@@ -386,30 +386,24 @@ export default function Home() {
           <div style={{
             width: 120,
             height: 28,
-            background: "#FF9900",
+            background: "linear-gradient(135deg, #FFB800 0%, #FF9900 50%, #E07500 100%)",
             borderRadius: 14,
-            border: "1px solid rgba(255,210,80,0.55)",
             boxShadow: `
-              inset 0 0 14px rgba(255,153,0,0.65),
-              inset 0 1px 4px rgba(255,220,100,0.4),
               0 0 22px rgba(255,120,0,0.45),
               0 0 8px rgba(255,153,0,0.35)
             `,
           }} />
-          <div style={{ width: 3, height: 28, background: "rgba(180,90,0,0.9)", borderRadius: 2, boxShadow: "0 0 6px rgba(255,100,0,0.3)" }} />
+          <div style={{ width: 3, height: 28, background: "linear-gradient(180deg, #CC7000 0%, #993F00 100%)", borderRadius: 2, boxShadow: "0 0 6px rgba(255,100,0,0.25)" }} />
           {/* Long strip — backlit amber-dark bar */}
           <div style={{
             flex: 1,
             height: 28,
-            background: "#CC6600",
-            border: "1px solid rgba(230,140,30,0.4)",
+            background: "linear-gradient(135deg, #D97000 0%, #CC6600 45%, #A85200 100%)",
             borderRadius: 2,
             display: "flex",
             alignItems: "center",
             paddingLeft: 12,
             boxShadow: `
-              inset 0 0 16px rgba(204,102,0,0.6),
-              inset 0 1px 3px rgba(255,160,40,0.3),
               0 0 16px rgba(200,90,0,0.35),
               0 0 5px rgba(220,110,0,0.25)
             `,
@@ -418,17 +412,14 @@ export default function Home() {
               BIO-SCANNER UNIT CLASS IV — STARDATE 47634.44
             </span>
           </div>
-          <div style={{ width: 3, height: 28, background: "rgba(100,100,220,0.9)", borderRadius: 2, boxShadow: "0 0 6px rgba(130,130,255,0.35)" }} />
+          <div style={{ width: 3, height: 28, background: "linear-gradient(180deg, #AAAAFF 0%, #6666CC 100%)", borderRadius: 2, boxShadow: "0 0 6px rgba(130,130,255,0.3)" }} />
           {/* Right rounded cap — backlit blue pill */}
           <div style={{
             width: 60,
             height: 28,
-            background: "#9999FF",
+            background: "linear-gradient(135deg, #BBBBFF 0%, #9999FF 50%, #7070DD 100%)",
             borderRadius: 14,
-            border: "1px solid rgba(200,200,255,0.55)",
             boxShadow: `
-              inset 0 0 14px rgba(153,153,255,0.65),
-              inset 0 1px 4px rgba(210,210,255,0.4),
               0 0 22px rgba(120,120,255,0.45),
               0 0 8px rgba(153,153,255,0.35)
             `,
@@ -455,20 +446,14 @@ export default function Home() {
           }}>
             <div style={{
               flex: 1,
-              background: "#FF9900",
+              background: "linear-gradient(160deg, #FFB800 0%, #FF9900 35%, #E07800 70%, #C86200 100%)",
               borderRadius: "0 0 0 12px",
-              border: "1px solid rgba(255,210,80,0.45)",
-              borderTop: "none",
-              borderLeft: "none",
               display: "flex",
               flexDirection: "column",
               justifyContent: "space-between",
               alignItems: "flex-end",
               padding: "10px 8px",
               boxShadow: `
-                inset 0 0 28px rgba(255,153,0,0.7),
-                inset -2px 0 10px rgba(255,120,0,0.35),
-                inset 0 2px 6px rgba(255,220,100,0.3),
                 0 0 28px rgba(255,120,0,0.45),
                 0 0 10px rgba(255,153,0,0.35)
               `,
@@ -477,7 +462,7 @@ export default function Home() {
                 <span key={l} className="lcars-label" style={{ color: "rgba(0,0,0,0.65)", fontSize: 7 }}>{l}</span>
               ))}
             </div>
-            <div style={{ height: 40, background: "#CC6600", borderRadius: "0 0 12px 0", border: "1px solid rgba(230,140,30,0.35)", borderTop: "none", borderLeft: "none", boxShadow: "inset 0 0 14px rgba(204,102,0,0.6), 0 0 16px rgba(200,90,0,0.35), 0 0 5px rgba(220,110,0,0.25)" }}>
+            <div style={{ height: 40, background: "linear-gradient(160deg, #CC7000 0%, #B85E00 55%, #963D00 100%)", borderRadius: "0 0 12px 0", boxShadow: "0 0 16px rgba(200,90,0,0.35), 0 0 5px rgba(220,110,0,0.25)" }}>
               {/* Alert light — stacked bloom + breathing pulse */}
               <div style={{
                 width: 10, height: 10,
@@ -798,20 +783,14 @@ export default function Home() {
           <div style={{
             width: 40,
             flexShrink: 0,
-            background: "#9999FF",
+            background: "linear-gradient(200deg, #BBBBFF 0%, #9999FF 35%, #7878EE 70%, #5858CC 100%)",
             borderRadius: "0 0 12px 0",
-            border: "1px solid rgba(200,200,255,0.45)",
-            borderTop: "none",
-            borderRight: "none",
             display: "flex",
             flexDirection: "column",
             justifyContent: "space-between",
             alignItems: "center",
             padding: "10px 0",
             boxShadow: `
-              inset 0 0 28px rgba(153,153,255,0.7),
-              inset 2px 0 10px rgba(120,120,255,0.35),
-              inset 0 2px 6px rgba(210,210,255,0.3),
               0 0 28px rgba(120,120,255,0.45),
               0 0 10px rgba(153,153,255,0.35)
             `,
