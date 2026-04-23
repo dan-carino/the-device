@@ -5,7 +5,7 @@ import RotaryDial from "@/components/RotaryDial";
 import Slider from "@/components/Slider";
 import ToggleSwitch from "@/components/ToggleSwitch";
 import Oscilloscope from "@/components/Oscilloscope";
-import { resolveEntity, getBiggestGapHint } from "@/data/entities";
+import { resolveEntity, getBiggestGapHint, getNearestUnfound } from "@/data/entities";
 import {
   startAmbientHum,
   playInitScan,
@@ -167,26 +167,41 @@ export default function Home() {
         }
       }
     } else if (nearestProximity >= 0.5) {
-      // Only flag "already catalogued" if the user has moved away and returned —
-      // not while they're still in the same detection session (lockInShownThisVisit)
       if (foundIds.includes(nearestEntity.id) && !lockInShownThisVisit) {
-        msg = "That signature is already in the catalogue. Keep adjusting — there are uncatalogued contacts in this sector.";
+        // Near a found species — hint toward the nearest unfound one instead
+        const next = getNearestUnfound({ freqMod, resCoeff, phaseShift, gain }, foundIds);
+        if (next) {
+          const hint = getBiggestGapHint({ freqMod, resCoeff, phaseShift, gain }, next.entity);
+          msg = `That contact's already logged. Nearest undetected signature needs your ${hint.name} ${hint.dir}.`;
+        } else {
+          msg = "All five species catalogued. Remarkable work, Ensign.";
+        }
       } else {
-        // Hint computed from current control values — not in deps, so message only
-        // retypes when the band changes, not on every dial tick
         const hint = getBiggestGapHint({ freqMod, resCoeff, phaseShift, gain }, nearestEntity);
         msg = `Almost there. Something is resolving. Fine-tune your ${hint.name} — bring it ${hint.dir}.`;
       }
     } else if (nearestProximity >= 0.3) {
       if (foundIds.includes(nearestEntity.id) && !lockInShownThisVisit) {
-        msg = "Already catalogued. Keep searching — adjust your parameters to find a new contact.";
+        const next = getNearestUnfound({ freqMod, resCoeff, phaseShift, gain }, foundIds);
+        if (next) {
+          const hint = getBiggestGapHint({ freqMod, resCoeff, phaseShift, gain }, next.entity);
+          msg = `That one's in the log. Try adjusting your ${hint.name} ${hint.dir} to pick up a new contact.`;
+        } else {
+          msg = "All five species catalogued. Remarkable work, Ensign.";
+        }
       } else {
         const hint = getBiggestGapHint({ freqMod, resCoeff, phaseShift, gain }, nearestEntity);
         msg = `Hold on — I'm reading a biosignature. Your ${hint.name} is off. Adjust it ${hint.dir} and hold your position.`;
       }
     } else if (nearestProximity >= 0.1) {
       if (foundIds.includes(nearestEntity.id) && !lockInShownThisVisit) {
-        msg = "Something on sensors — but it's already logged. Keep scanning for new signatures.";
+        const next = getNearestUnfound({ freqMod, resCoeff, phaseShift, gain }, foundIds);
+        if (next) {
+          const hint = getBiggestGapHint({ freqMod, resCoeff, phaseShift, gain }, next.entity);
+          msg = `Already logged. Start with your ${hint.name} — bring it ${hint.dir} to find a new signature.`;
+        } else {
+          msg = "All five species catalogued. Remarkable work, Ensign.";
+        }
       } else {
         const hint = getBiggestGapHint({ freqMod, resCoeff, phaseShift, gain }, nearestEntity);
         msg = `Something faint on the edge of sensors. Start with your ${hint.name} — try turning it ${hint.dir}.`;

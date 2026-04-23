@@ -142,6 +142,26 @@ function proximityTo(state: DeviceState, entity: Entity): number {
   return Math.min(1, curved);
 }
 
+/**
+ * Returns the nearest entity that has NOT yet been catalogued, plus its proximity.
+ * Returns null if all entities have been found.
+ */
+export function getNearestUnfound(
+  state: DeviceState,
+  foundIds: string[]
+): { entity: Entity; proximity: number } | null {
+  const unfound = ENTITIES.filter(e => !foundIds.includes(e.id));
+  if (unfound.length === 0) return null;
+
+  let best = unfound[0];
+  let bestProx = proximityTo(state, unfound[0]);
+  for (const entity of unfound.slice(1)) {
+    const prox = proximityTo(state, entity);
+    if (prox > bestProx) { best = entity; bestProx = prox; }
+  }
+  return { entity: best, proximity: bestProx };
+}
+
 export function resolveEntity(state: DeviceState): ResolverResult {
   let best = ENTITIES[0];
   let bestProx = proximityTo(state, ENTITIES[0]);
