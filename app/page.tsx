@@ -380,63 +380,6 @@ export default function Home() {
           zIndex: 10,
         }} />
 
-        {/* Panel corner screws — 4 × machined detail */}
-        {[
-          { top: 10, left: 10 },
-          { top: 10, right: 10 },
-          { bottom: 10, left: 10 },
-          { bottom: 10, right: 10 },
-        ].map((pos, i) => (
-          /* Countersink — slightly larger bore in the chassis surface */
-          <div key={i} style={{
-            position: "absolute",
-            ...pos,
-            width: 12,
-            height: 12,
-            borderRadius: "50%",
-            background: "radial-gradient(circle at 50% 50%, #0a0a0a, #050505)",
-            boxShadow: `
-              inset 0 2px 4px rgba(0,0,0,0.95),
-              inset 0 0 0 1px rgba(0,0,0,0.8),
-              0 1px 3px rgba(0,0,0,0.7),
-              0 2px 6px rgba(0,0,0,0.45)
-            `,
-            zIndex: 10,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}>
-            {/* Screw head — sits in the countersink, catches key light top-left */}
-            <div style={{
-              width: 8,
-              height: 8,
-              borderRadius: "50%",
-              background: "radial-gradient(circle at 32% 28%, #3a3a3a 0%, #222 45%, #0e0e0e 100%)",
-              boxShadow: `
-                inset 0 1px 2px rgba(0,0,0,0.9),
-                0 0 0 0.5px rgba(255,255,255,0.06)
-              `,
-              position: "relative",
-            }}>
-              {/* Slot horizontal — dark cut + bright opposite edge */}
-              <div style={{ position: "absolute", top: "calc(50% - 0.5px)", left: "18%", right: "18%", height: 1, background: "rgba(0,0,0,0.85)" }} />
-              <div style={{ position: "absolute", top: "calc(50% - 1.5px)", left: "18%", right: "18%", height: 1, background: "rgba(255,255,255,0.07)" }} />
-              {/* Slot vertical */}
-              <div style={{ position: "absolute", left: "calc(50% - 0.5px)", top: "18%", bottom: "18%", width: 1, background: "rgba(0,0,0,0.85)" }} />
-              <div style={{ position: "absolute", left: "calc(50% - 1.5px)", top: "18%", bottom: "18%", width: 1, background: "rgba(255,255,255,0.07)" }} />
-              {/* Specular — key light hits top-left of the dome */}
-              <div style={{
-                position: "absolute",
-                top: "15%", left: "18%",
-                width: "28%", height: "22%",
-                borderRadius: "50%",
-                background: "rgba(255,255,255,0.18)",
-                filter: "blur(0.8px)",
-              }} />
-            </div>
-          </div>
-        ))}
-
         {/* ── LCARS amber top strip ───────────────────────────────── */}
         <div style={{
           display: "flex",
