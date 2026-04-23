@@ -23,11 +23,6 @@ export default function Home() {
   const [gain, setGain] = useState(0.5);
   const [bandFilter, setBandFilter] = useState(0.5);
 
-  // ── DEV: noise tweaker — remove when done ───────────────────────
-  const [noiseOpacity, setNoiseOpacity]   = useState(0.045);
-  const [noiseFreq, setNoiseFreq]         = useState(0.72);
-  const [noiseOctaves, setNoiseOctaves]   = useState(4);
-
   // Switch state
   const [polarity, setPolarity] = useState(0); // 0=normal, 1=inverted
   const [scanMode, setScanMode] = useState(0);  // 0=passive, 1=active, 2=deep
@@ -301,8 +296,8 @@ export default function Home() {
           <filter id="chassis-noise" x="0%" y="0%" width="100%" height="100%" colorInterpolationFilters="sRGB">
             <feTurbulence
               type="fractalNoise"
-              baseFrequency={noiseFreq}
-              numOctaves={noiseOctaves}
+              baseFrequency="0.47"
+              numOctaves="2"
               stitchTiles="stitch"
               result="noise"
             />
@@ -367,7 +362,7 @@ export default function Home() {
           position: "absolute",
           inset: 0,
           borderRadius: 18,
-          opacity: noiseOpacity,
+          opacity: 0.11,
           filter: "url(#chassis-noise)",
           background: "#ffffff",
           pointerEvents: "none",
@@ -867,44 +862,6 @@ export default function Home() {
         filter: "blur(12px)",
         pointerEvents: "none",
       }} />
-
-      {/* ── DEV: noise tweaker — remove when done ── */}
-      <div style={{
-        position: "fixed",
-        bottom: 16,
-        right: 16,
-        background: "rgba(10,10,10,0.92)",
-        border: "1px solid rgba(255,153,0,0.3)",
-        borderRadius: 8,
-        padding: "10px 14px",
-        display: "flex",
-        flexDirection: "column",
-        gap: 8,
-        zIndex: 9999,
-        backdropFilter: "blur(8px)",
-        minWidth: 200,
-      }}>
-        <span style={{ fontFamily: "monospace", fontSize: 9, color: "rgba(255,153,0,0.6)", letterSpacing: "0.1em" }}>
-          DEV · NOISE TEXTURE
-        </span>
-        {([
-          { label: "Opacity",   value: noiseOpacity,  set: setNoiseOpacity,  min: 0,    max: 0.3, step: 0.001 },
-          { label: "Frequency", value: noiseFreq,     set: setNoiseFreq,     min: 0.02, max: 2.0, step: 0.01  },
-          { label: "Octaves",   value: noiseOctaves,  set: setNoiseOctaves,  min: 1,    max: 6,   step: 1     },
-        ] as const).map(({ label, value, set, min, max, step }) => (
-          <div key={label} style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-            <div style={{ display: "flex", justifyContent: "space-between" }}>
-              <span style={{ fontFamily: "monospace", fontSize: 9, color: "rgba(255,255,255,0.5)" }}>{label}</span>
-              <span style={{ fontFamily: "monospace", fontSize: 9, color: "rgba(255,153,0,0.8)" }}>{value}</span>
-            </div>
-            <input
-              type="range" min={min} max={max} step={step} value={value}
-              onChange={e => (set as (v: number) => void)(Number(e.target.value))}
-              style={{ width: "100%", accentColor: "#FF9900", cursor: "pointer" }}
-            />
-          </div>
-        ))}
-      </div>
 
       <style>{`
         @keyframes alertBreath {
