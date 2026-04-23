@@ -1128,26 +1128,6 @@ export default function Home() {
         }
       `}</style>
 
-      {/* ── Dev test button ── */}
-      <button
-        onClick={() => setTestAllFound(true)}
-        style={{
-          position: "fixed",
-          bottom: 16,
-          right: 16,
-          padding: "4px 10px",
-          background: "rgba(0,0,0,0.08)",
-          border: "1px solid rgba(0,0,0,0.15)",
-          borderRadius: 4,
-          cursor: "pointer",
-          fontFamily: "monospace",
-          fontSize: 10,
-          color: "rgba(0,0,0,0.35)",
-          letterSpacing: "0.08em",
-        }}
-      >
-        test confetti
-      </button>
 
     </main>
   );
