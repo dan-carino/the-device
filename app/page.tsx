@@ -23,11 +23,6 @@ export default function Home() {
   const [gain, setGain] = useState(0.5);
   const [bandFilter, setBandFilter] = useState(0.5);
 
-  // ── DEV: global light tweaker — remove when done ────────────────
-  const [keyLightOpacity, setKeyLightOpacity]     = useState(0.07);
-  const [amberSpillOpacity, setAmberSpillOpacity] = useState(0.07);
-  const [blueSpillOpacity, setBlueSpillOpacity]   = useState(0.06);
-
   // Switch state
   const [polarity, setPolarity] = useState(0); // 0=normal, 1=inverted
   const [scanMode, setScanMode] = useState(0);  // 0=passive, 1=active, 2=deep
@@ -383,18 +378,7 @@ export default function Home() {
           position: "absolute",
           inset: 0,
           borderRadius: 18,
-          background: `radial-gradient(ellipse 90% 55% at 50% -5%, rgba(255,255,255,${keyLightOpacity}) 0%, rgba(255,255,255,${+(keyLightOpacity * 0.36).toFixed(3)}) 45%, transparent 70%)`,
-          pointerEvents: "none",
-          zIndex: 2,
-        }} />
-
-        {/* Amber emissive spill — the left LCARS strip acts as a local light
-            source, casting a warm tint onto the dark chassis beside it. */}
-        <div style={{
-          position: "absolute",
-          inset: 0,
-          borderRadius: 18,
-          background: `radial-gradient(ellipse 35% 70% at 4% 60%, rgba(255,130,0,${amberSpillOpacity}) 0%, transparent 100%)`,
+          background: "radial-gradient(ellipse 90% 55% at 50% -5%, rgba(255,255,255,0.065) 0%, rgba(255,255,255,0.023) 45%, transparent 70%)",
           pointerEvents: "none",
           zIndex: 2,
         }} />
@@ -404,7 +388,7 @@ export default function Home() {
           position: "absolute",
           inset: 0,
           borderRadius: 18,
-          background: `radial-gradient(ellipse 30% 70% at 98% 60%, rgba(120,120,255,${blueSpillOpacity}) 0%, transparent 100%)`,
+          background: "radial-gradient(ellipse 30% 70% at 98% 60%, rgba(120,120,255,0.04) 0%, transparent 100%)",
           pointerEvents: "none",
           zIndex: 2,
         }} />
@@ -879,36 +863,6 @@ export default function Home() {
         filter: "blur(12px)",
         pointerEvents: "none",
       }} />
-
-      {/* ── DEV: global light tweaker — remove when done ── */}
-      <div style={{
-        position: "fixed", bottom: 16, right: 16, zIndex: 9999,
-        background: "rgba(10,10,10,0.92)", border: "1px solid rgba(255,153,0,0.3)",
-        borderRadius: 8, padding: "10px 14px", minWidth: 210,
-        display: "flex", flexDirection: "column", gap: 8,
-        backdropFilter: "blur(8px)",
-      }}>
-        <span style={{ fontFamily: "monospace", fontSize: 9, color: "rgba(255,153,0,0.6)", letterSpacing: "0.1em" }}>
-          DEV · GLOBAL LIGHTING
-        </span>
-        {([
-          { label: "Key light",    value: keyLightOpacity,    set: setKeyLightOpacity },
-          { label: "Amber spill",  value: amberSpillOpacity,  set: setAmberSpillOpacity },
-          { label: "Blue spill",   value: blueSpillOpacity,   set: setBlueSpillOpacity },
-        ] as const).map(({ label, value, set }) => (
-          <div key={label} style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-            <div style={{ display: "flex", justifyContent: "space-between" }}>
-              <span style={{ fontFamily: "monospace", fontSize: 9, color: "rgba(255,255,255,0.5)" }}>{label}</span>
-              <span style={{ fontFamily: "monospace", fontSize: 9, color: "rgba(255,153,0,0.8)" }}>{value}</span>
-            </div>
-            <input
-              type="range" min={0} max={0.3} step={0.005} value={value}
-              onChange={e => (set as (v: number) => void)(Number(e.target.value))}
-              style={{ width: "100%", accentColor: "#FF9900", cursor: "pointer" }}
-            />
-          </div>
-        ))}
-      </div>
 
       <style>{`
         @keyframes alertBreath {
