@@ -74,6 +74,7 @@ export default function Slider({
 
   const onPointerMove = useCallback(
     (e: React.PointerEvent) => {
+      if (e.buttons === 0) { lastYRef.current = null; return; }
       if (lastYRef.current === null) return;
       const dy = lastYRef.current - e.clientY; // up = positive
       const delta = dy / TRAVEL;
@@ -93,6 +94,12 @@ export default function Slider({
     startMomentum();
   }, [startMomentum]);
 
+  const onLostPointerCapture = useCallback(() => {
+    lastYRef.current = null;
+    setDragging(false);
+    velocityRef.current = 0;
+  }, []);
+
   useEffect(() => () => stopMomentum(), [stopMomentum]);
 
   // Thumb position: value=0 → bottom, value=1 → top
@@ -107,6 +114,7 @@ export default function Slider({
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
         onPointerCancel={onPointerUp}
+        onLostPointerCapture={onLostPointerCapture}
         style={{
           width: 20,
           height: TRACK_HEIGHT,

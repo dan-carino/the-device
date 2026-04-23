@@ -78,6 +78,11 @@ export default function RotaryDial({
   }, [stopMomentum]);
 
   const onPointerMove = useCallback((e: React.PointerEvent) => {
+    // Guard: if no button is held (e.g. hover, or capture was lost), reset and bail
+    if (e.buttons === 0) {
+      lastYRef.current = null;
+      return;
+    }
     if (lastYRef.current === null) return;
     const delta = (lastYRef.current - e.clientY) / PX_PER_DEG;
     velocityRef.current = delta * 0.6;
@@ -94,6 +99,14 @@ export default function RotaryDial({
     setDragging(false);
     startMomentum();
   }, [startMomentum]);
+
+  // Safety net: if pointer capture is lost (tab switch, OS interrupt, etc.)
+  // treat it like a pointer up so the dial doesn't keep responding to hover
+  const onLostPointerCapture = useCallback(() => {
+    lastYRef.current = null;
+    setDragging(false);
+    velocityRef.current = 0; // no momentum from an interrupted drag
+  }, []);
 
   useEffect(() => () => stopMomentum(), [stopMomentum]);
 
@@ -217,6 +230,7 @@ export default function RotaryDial({
           onPointerMove={onPointerMove}
           onPointerUp={onPointerUp}
           onPointerCancel={onPointerUp}
+          onLostPointerCapture={onLostPointerCapture}
           style={{
             position: "absolute",
             inset: 0,
