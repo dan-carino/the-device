@@ -183,7 +183,8 @@ export default function Home() {
         const hint = getBiggestGapHint({ freqMod, resCoeff, phaseShift, gain }, unfound.entity);
         msg = `Something faint on the edge of sensors. Start with your ${hint.name} — try turning it ${hint.dir}.`;
       } else {
-        msg = "Nothing on sensors yet. The frequency modulation dial is your broadest search parameter. Start there.";
+        const hint = getBiggestGapHint({ freqMod, resCoeff, phaseShift, gain }, unfound.entity);
+        msg = `Nothing on sensors yet. Try adjusting your ${hint.name} — bring it ${hint.dir}.`;
       }
     }
     setBriefingText(msg);
