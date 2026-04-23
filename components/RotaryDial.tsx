@@ -135,7 +135,7 @@ export default function RotaryDial({
           }}
         />
 
-        {/* ── Layer 2: Inner cap — ROTATES with interaction ── */}
+        {/* ── Layer 2: CSS cap — ROTATES — radially symmetric so lighting is always correct ── */}
         <div style={{
           position: "absolute",
           top: capOffset,
@@ -143,26 +143,44 @@ export default function RotaryDial({
           width: capSize,
           height: capSize,
           borderRadius: "50%",
-          overflow: "hidden",
+          // Purely radial gradient — identical at every rotation angle
+          background: `radial-gradient(circle at 50% 50%,
+            #2e2e2e 0%,
+            #1e1e1e 45%,
+            #111 75%,
+            #070707 100%
+          )`,
           transform: `rotate(${angle}deg)`,
-          // No transition — physics loop handles smoothness
           pointerEvents: "none",
         }}>
-          <img
-            src="/knob-cap.png"
-            alt=""
-            draggable={false}
-            style={{
-              width: "100%",
-              height: "100%",
-              display: "block",
-              userSelect: "none",
-            }}
-          />
+          {/* Indicator line — rotates with cap, crisp white mark */}
+          <div style={{
+            position: "absolute",
+            top: "8%",
+            left: "50%",
+            transform: "translateX(-50%)",
+            width: 2,
+            height: "30%",
+            background: "rgba(240,240,240,0.9)",
+            borderRadius: 1,
+            boxShadow: "0 0 3px rgba(255,255,255,0.4)",
+          }} />
+          {/* Centre screw dot */}
+          <div style={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            width: "10%",
+            height: "10%",
+            borderRadius: "50%",
+            background: "radial-gradient(circle at 35% 35%, #2a2a2a, #080808)",
+            boxShadow: "inset 0 1px 2px rgba(0,0,0,0.9)",
+          }} />
         </div>
 
-        {/* ── Layer 3: Fixed key-light highlight — STATIC ── */}
-        {/* Provides the directional lighting that doesn't rotate with the cap */}
+        {/* ── Layer 3: Fixed key-light — STATIC, never rotates ── */}
+        {/* Warm silver-champagne specular, matches the ring's light source */}
         <div style={{
           position: "absolute",
           top: capOffset,
@@ -171,9 +189,10 @@ export default function RotaryDial({
           height: capSize,
           borderRadius: "50%",
           background: `
-            radial-gradient(ellipse 58% 42% at 36% 26%,
-              rgba(255,255,255,0.07) 0%,
-              transparent 100%
+            radial-gradient(ellipse 62% 48% at 33% 25%,
+              rgba(212,196,158,0.42) 0%,
+              rgba(190,175,140,0.18) 40%,
+              transparent 70%
             )
           `,
           pointerEvents: "none",
