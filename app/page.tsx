@@ -5,7 +5,7 @@ import RotaryDial from "@/components/RotaryDial";
 import Slider from "@/components/Slider";
 import ToggleSwitch from "@/components/ToggleSwitch";
 import Oscilloscope from "@/components/Oscilloscope";
-import { resolveEntity, getBiggestGapHint, getNearestUnfound } from "@/data/entities";
+import { resolveEntity, getBiggestGapHint, getNearestUnfound, getSwitchIssue } from "@/data/entities";
 import {
   startAmbientHum,
   playInitScan,
@@ -49,8 +49,8 @@ export default function Home() {
 
   // Entity proximity — recalculates on every control change
   const resolution = useMemo(
-    () => resolveEntity({ freqMod, resCoeff, phaseShift, gain }),
-    [freqMod, resCoeff, phaseShift, gain]
+    () => resolveEntity({ freqMod, resCoeff, phaseShift, gain, bandFilter, polarity, scanMode }),
+    [freqMod, resCoeff, phaseShift, gain, bandFilter, polarity, scanMode]
   );
 
   const { nearestEntity, nearestProximity } = resolution;
@@ -168,26 +168,40 @@ export default function Home() {
       }
     } else {
       // Below entityFound threshold — always hint toward the nearest UNFOUND species.
-      // Proximity bands are based on how close the unfound entity is, not the found one.
-      // Computed inline so hints update fresh each run without adding control values to deps.
-      const unfound = getNearestUnfound({ freqMod, resCoeff, phaseShift, gain }, foundIds);
+      const state = { freqMod, resCoeff, phaseShift, gain, bandFilter, polarity, scanMode };
+      const unfound = getNearestUnfound(state, foundIds);
       if (!unfound) {
         msg = "All five species catalogued. Remarkable work, Ensign.";
-      } else if (unfound.proximity >= 0.5) {
-        const hint = getBiggestGapHint({ freqMod, resCoeff, phaseShift, gain }, unfound.entity);
-        msg = `Almost there. Something is resolving. Fine-tune your ${hint.name} — bring it ${hint.dir}.`;
-      } else if (unfound.proximity >= 0.3) {
-        const hint = getBiggestGapHint({ freqMod, resCoeff, phaseShift, gain }, unfound.entity);
-        msg = `Hold on — I'm reading a biosignature. Your ${hint.name} is off. Adjust it ${hint.dir} and hold your position.`;
-      } else if (unfound.proximity >= 0.1) {
-        const hint = getBiggestGapHint({ freqMod, resCoeff, phaseShift, gain }, unfound.entity);
-        msg = `Something faint on the edge of sensors. Start with your ${hint.name} — try turning it ${hint.dir}.`;
       } else {
-        msg = "Nothing on sensors yet. The frequency modulation dial is your broadest search parameter. Start there.";
+        const hint = getBiggestGapHint(state, unfound.entity);
+        const switchIssue = getSwitchIssue(state, unfound.entity);
+
+        // Switch hint lines — oblique, no explicit setting named
+        const switchLine = switchIssue === "polarity"
+          ? "The signal keeps inverting on us — something in the configuration is working against the lock."
+          : switchIssue === "scanMode"
+          ? "The scan depth isn't cutting through this signature. We may need a different approach entirely."
+          : null;
+
+        if (unfound.proximity >= 0.5) {
+          msg = switchLine
+            ? `Almost there — your ${hint.name} is close. But ${switchLine.toLowerCase()}`
+            : `Almost there. Something is resolving. Fine-tune your ${hint.name} — bring it ${hint.dir}.`;
+        } else if (unfound.proximity >= 0.3) {
+          msg = switchLine
+            ? `I'm reading something. ${switchLine} Also try your ${hint.name} — bring it ${hint.dir}.`
+            : `Hold on — I'm reading a biosignature. Your ${hint.name} is off. Adjust it ${hint.dir} and hold your position.`;
+        } else if (unfound.proximity >= 0.1) {
+          msg = switchLine
+            ? `Something faint out there. ${switchLine}`
+            : `Something faint on the edge of sensors. Start with your ${hint.name} — try turning it ${hint.dir}.`;
+        } else {
+          msg = `Nothing on sensors yet. Try adjusting your ${hint.name} — bring it ${hint.dir}.`;
+        }
       }
     }
     setBriefingText(msg);
-  }, [scanning, entityFound, nearestProximity, idleIndex, nearestEntity, foundIds, lockInActive, lockInShownThisVisit]);
+  }, [scanning, entityFound, nearestProximity, idleIndex, nearestEntity, foundIds, lockInActive, lockInShownThisVisit, bandFilter, polarity, scanMode]);
 
   // Typewriter — reruns whenever briefingText changes
   useEffect(() => {
@@ -378,18 +392,7 @@ export default function Home() {
           position: "absolute",
           inset: 0,
           borderRadius: 18,
-          background: "radial-gradient(ellipse 90% 55% at 50% -5%, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0.025) 45%, transparent 70%)",
-          pointerEvents: "none",
-          zIndex: 2,
-        }} />
-
-        {/* Amber emissive spill — the left LCARS strip acts as a local light
-            source, casting a warm tint onto the dark chassis beside it. */}
-        <div style={{
-          position: "absolute",
-          inset: 0,
-          borderRadius: 18,
-          background: "radial-gradient(ellipse 35% 70% at 4% 60%, rgba(255,130,0,0.07) 0%, transparent 100%)",
+          background: "radial-gradient(ellipse 90% 55% at 50% -5%, rgba(255,255,255,0.065) 0%, rgba(255,255,255,0.023) 45%, transparent 70%)",
           pointerEvents: "none",
           zIndex: 2,
         }} />
@@ -399,7 +402,7 @@ export default function Home() {
           position: "absolute",
           inset: 0,
           borderRadius: 18,
-          background: "radial-gradient(ellipse 30% 70% at 98% 60%, rgba(120,120,255,0.06) 0%, transparent 100%)",
+          background: "radial-gradient(ellipse 30% 70% at 98% 60%, rgba(120,120,255,0.04) 0%, transparent 100%)",
           pointerEvents: "none",
           zIndex: 2,
         }} />
@@ -505,29 +508,28 @@ export default function Home() {
               ))}
             </div>
             <div style={{ height: 40, background: "linear-gradient(160deg, #CC7000 0%, #B85E00 55%, #963D00 100%)", borderRadius: "0 0 12px 0", boxShadow: "0 0 16px rgba(200,90,0,0.35), 0 0 5px rgba(220,110,0,0.25)" }}>
-              {/* Alert light — stacked bloom + breathing pulse */}
+              {/* Alert light — physical LED dome */}
               <div style={{
                 width: 10, height: 10,
                 borderRadius: "50%",
-                background: entityFound
-                  ? "var(--lcars-phosphor)"
-                  : scanning
-                    ? "var(--lcars-phosphor)"
-                    : "var(--lcars-red)",
-                // entity-found gets a steady bright bloom; animated states handled by keyframes
+                // Off: dark unlit plastic. On: white-hot core bleeding to saturated colour.
+                background: (entityFound || scanning)
+                  ? "radial-gradient(circle at 40% 35%, #ffffff 0%, #4aff7a 35%, #00cc55 100%)"
+                  : "radial-gradient(circle at 40% 35%, #4a1515 0%, #1e0404 100%)",
                 boxShadow: entityFound
-                  ? `0 0 4px var(--lcars-phosphor),
-                     0 0 14px rgba(0,255,136,0.85),
-                     0 0 28px rgba(0,255,136,0.55),
-                     0 0 50px rgba(0,255,136,0.28)`
-                  : undefined,
-                margin: "15px auto 0",
-                animation: entityFound
-                  ? "none"
+                  ? `inset 0 0 4px rgba(255,255,255,0.8),
+                     0 0 6px #4aff7a,
+                     0 0 18px rgba(0,255,136,0.7),
+                     0 0 40px rgba(0,255,136,0.35)`
                   : scanning
-                    ? "scanBreath 1.4s ease-in-out infinite"
-                    : "alertBreath 2.6s ease-in-out infinite",
-                transition: "background 0.3s",
+                    ? undefined  // animation handles box-shadow
+                    : `inset 0 2px 3px rgba(0,0,0,0.6),
+                       inset 0 -1px 1px rgba(255,255,255,0.08),
+                       inset 0px 1px 1px rgba(255,255,255,0.35),
+                       0 1px 0 rgba(255,255,255,0.08)`,
+                margin: "15px auto 0",
+                animation: scanning && !entityFound ? "scanBreath 1.4s ease-in-out infinite" : "none",
+                transition: "background 0.4s, box-shadow 0.4s",
               }} />
             </div>
           </div>
@@ -797,21 +799,21 @@ export default function Home() {
                 style={{
                   height: 34,
                   background: scanning
-                    ? "rgba(0,255,136,0.15)"
-                    : "rgba(204,102,0,0.3)",
-                  border: `1px solid ${scanning ? "var(--lcars-phosphor)" : "var(--lcars-amber)"}`,
+                    ? "linear-gradient(135deg, #00ff99 0%, #00cc77 50%, #009955 100%)"
+                    : "linear-gradient(135deg, #FF9900 0%, #CC6600 55%, #A84E00 100%)",
+                  border: `1px solid ${scanning ? "rgba(0,255,136,0.5)" : "rgba(255,153,0,0.5)"}`,
                   borderRadius: 6,
                   display: "flex", alignItems: "center", justifyContent: "center",
                   cursor: "pointer",
                   boxShadow: scanning
-                    ? "0 0 16px rgba(0,255,136,0.2), inset 0 1px 0 rgba(255,255,255,0.05)"
-                    : "0 0 12px rgba(255,153,0,0.15), inset 0 1px 0 rgba(255,255,255,0.05)",
+                    ? "0 0 18px rgba(0,255,136,0.35), 0 0 6px rgba(0,255,136,0.25)"
+                    : "0 0 18px rgba(255,120,0,0.4), 0 0 6px rgba(255,153,0,0.3)",
                   transition: "all 0.2s",
                   userSelect: "none",
                 }}
               >
                 <span className="lcars-label" style={{
-                  color: scanning ? "var(--lcars-phosphor)" : "var(--lcars-amber)",
+                  color: "rgba(0,0,0,0.7)",
                 }}>
                   {scanning ? "ABORT SCAN" : "INIT. SCAN"}
                 </span>
@@ -876,28 +878,17 @@ export default function Home() {
       }} />
 
       <style>{`
-        @keyframes alertBreath {
-          0%, 100% {
-            box-shadow: 0 0 3px var(--lcars-red),
-                        0 0 8px rgba(255,50,0,0.35);
-          }
-          50% {
-            box-shadow: 0 0 6px var(--lcars-red),
-                        0 0 18px rgba(255,60,0,0.65),
-                        0 0 36px rgba(255,50,0,0.28),
-                        0 0 60px rgba(255,40,0,0.12);
-          }
-        }
         @keyframes scanBreath {
           0%, 100% {
-            box-shadow: 0 0 4px var(--lcars-phosphor),
-                        0 0 12px rgba(0,255,136,0.45);
+            box-shadow: inset 0 0 3px rgba(255,255,255,0.5),
+                        0 0 5px #4aff7a,
+                        0 0 12px rgba(0,255,136,0.5);
           }
           50% {
-            box-shadow: 0 0 8px var(--lcars-phosphor),
-                        0 0 22px rgba(0,255,136,0.75),
-                        0 0 42px rgba(0,255,136,0.35),
-                        0 0 70px rgba(0,255,136,0.15);
+            box-shadow: inset 0 0 4px rgba(255,255,255,0.9),
+                        0 0 8px #4aff7a,
+                        0 0 22px rgba(0,255,136,0.8),
+                        0 0 42px rgba(0,255,136,0.35);
           }
         }
         @keyframes textBlink {
