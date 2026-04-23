@@ -79,10 +79,10 @@ export default function Home() {
 
   // ── Commander briefing system ────────────────────────────────────
   const IDLE_MESSAGES = [
-    "Ensign. The device before you is a Class IV bio-scanner. We're detecting anomalous subspace signatures in this sector. Initialise a scan when ready.",
-    "Primary search parameters: frequency modulation and resonance coefficient. Phase shift controls dimensional depth. You'll need all three axes to isolate a contact.",
-    "Intel suggests multiple life forms are present in this region. Some are common. Some have never been classified. The scanner will find them — if you know how to use it.",
-    "These readings don't announce themselves. You have to go looking. Adjust the dials, initialise a scan, and pay attention to what the oscilloscope tells you.",
+    "Ensign. The device before you is a bio-scanner. We're detecting anomalous biosignatures in this sector — Klingon, Romulan, possibly worse. Initialise a scan when ready.",
+    "Primary search parameters: frequency modulation and resonance coefficient. Phase shift controls dimensional depth. You'll need all three axes to isolate a species signature.",
+    "Intel places at least five known species in this region. Some are common. One is unlike anything in Starfleet's records. The scanner will find them — if you know how to use it.",
+    "These signatures don't announce themselves. Adjust the dials, initialise a scan, and watch the oscilloscope. You'll know when you've locked on.",
   ];
 
   const [idleIndex, setIdleIndex] = useState(0);
@@ -92,14 +92,24 @@ export default function Home() {
   const [cursorOn, setCursorOn] = useState(true);
   const typewriterRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const prevEntityFoundRef = useRef(false);
+  const lockInTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Track total entities found across scans
+  // Lock-in state — the dramatic freeze-frame on first contact
+  const [lockInActive, setLockInActive] = useState(false);
+  const [lockInEntity, setLockInEntity] = useState(nearestEntity);
+
+  // Track total entities found + trigger lock-in on each new detection
   useEffect(() => {
     if (entityFound && !prevEntityFoundRef.current) {
+      // New entity detected — trigger lock-in sequence
       setFoundCount(c => c + 1);
+      setLockInEntity(nearestEntity);
+      setLockInActive(true);
+      if (lockInTimerRef.current) clearTimeout(lockInTimerRef.current);
+      lockInTimerRef.current = setTimeout(() => setLockInActive(false), 2800);
     }
     prevEntityFoundRef.current = entityFound;
-  }, [entityFound]);
+  }, [entityFound, nearestEntity]);
 
   // Cycle idle messages when not scanning
   useEffect(() => {
@@ -116,10 +126,10 @@ export default function Home() {
     } else if (entityFound) {
       const remaining = 5 - foundCount;
       msg = foundCount <= 1
-        ? `Contact. ${nearestEntity.name}. ${nearestEntity.class}. ${nearestEntity.bioReading}. Log it, Ensign. There are four more out there.`
+        ? `Contact confirmed — ${nearestEntity.name}. ${nearestEntity.bioReading}. Log it, Ensign. Four more species are out there. Keep scanning.`
         : remaining > 0
-          ? `${nearestEntity.name} confirmed. ${foundCount} of 5 entities logged. The rarest configurations require precise multi-axis tuning. Keep scanning.`
-          : `${nearestEntity.name}. That's all five. Remarkable work, Ensign. This sector's catalogue is complete.`;
+          ? `${nearestEntity.name} signature confirmed. ${foundCount} of 5 species logged. The rarest require precise multi-axis tuning. Don't stop now.`
+          : `${nearestEntity.name}. That's all five. Remarkable work, Ensign. This sector's catalogue is complete. Starfleet Command will want to see these readings.`;
     } else if (nearestProximity >= 0.5) {
       msg = "Something is resolving on sensors. Stay with it — adjust carefully. Don't let it slip.";
     } else if (nearestProximity >= 0.3) {
@@ -207,14 +217,15 @@ export default function Home() {
           background: "linear-gradient(90deg, rgba(200,140,0,0.4) 0%, rgba(200,140,0,0.15) 60%, transparent 100%)",
         }} />
 
-        {/* Briefing text */}
+        {/* Briefing text — fixed height so the device never shifts */}
         <p style={{
           fontFamily: "var(--font-lcars, 'Courier New', monospace)",
           fontSize: 13,
           lineHeight: 1.65,
           color: "#1a1a1a",
           margin: 0,
-          minHeight: "2.8em",
+          height: "4.95em",   /* exactly 3 lines × 1.65 line-height */
+          overflow: "hidden",
           letterSpacing: "0.01em",
         }}>
           {displayedText}
@@ -494,6 +505,60 @@ export default function Home() {
                   pointerEvents: "none",
                   zIndex: 4,
                 }} />
+
+                {/* ── Lock-in flash — dramatic freeze-frame on entity detection ── */}
+                {lockInActive && (
+                  <div style={{
+                    position: "absolute",
+                    inset: 0,
+                    zIndex: 20,
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 10,
+                    animation: "lockInFade 2.8s ease-out forwards",
+                    pointerEvents: "none",
+                  }}>
+                    {/* Phosphor flash behind the text */}
+                    <div style={{
+                      position: "absolute",
+                      inset: 0,
+                      background: "radial-gradient(ellipse 70% 50% at 50% 50%, rgba(0,255,136,0.18) 0%, transparent 70%)",
+                      animation: "lockInGlow 2.8s ease-out forwards",
+                    }} />
+                    {/* Entity class */}
+                    <span className="lcars-label" style={{
+                      color: "rgba(0,255,136,0.6)",
+                      fontSize: 9,
+                      letterSpacing: "0.25em",
+                      animation: "lockInText 2.8s ease-out forwards",
+                    }}>
+                      {lockInEntity.class} · {lockInEntity.rarity}
+                    </span>
+                    {/* Entity name — the big reveal */}
+                    <span className="lcars-readout" style={{
+                      color: "var(--lcars-phosphor)",
+                      fontSize: 16,
+                      letterSpacing: "0.18em",
+                      textAlign: "center",
+                      textShadow: "0 0 24px rgba(0,255,136,0.8), 0 0 8px rgba(0,255,136,0.6)",
+                      animation: "lockInText 2.8s ease-out forwards",
+                      padding: "0 16px",
+                    }}>
+                      {lockInEntity.name}
+                    </span>
+                    {/* Bio reading */}
+                    <span className="lcars-label" style={{
+                      color: "rgba(0,255,136,0.5)",
+                      fontSize: 8,
+                      letterSpacing: "0.15em",
+                      animation: "lockInText 2.8s ease-out forwards",
+                    }}>
+                      {lockInEntity.bioReading}
+                    </span>
+                  </div>
+                )}
                 {/* Status labels overlay */}
                 <div style={{
                   position: "absolute", inset: 0,
@@ -705,6 +770,24 @@ export default function Home() {
         @keyframes textBlink {
           0%, 100% { opacity: 0.5; }
           50% { opacity: 0.15; }
+        }
+        @keyframes lockInFade {
+          0%   { opacity: 0; }
+          6%   { opacity: 1; }
+          70%  { opacity: 1; }
+          100% { opacity: 0; }
+        }
+        @keyframes lockInGlow {
+          0%   { opacity: 0; }
+          8%   { opacity: 1; }
+          50%  { opacity: 0.6; }
+          100% { opacity: 0; }
+        }
+        @keyframes lockInText {
+          0%   { opacity: 0; transform: translateY(4px); }
+          12%  { opacity: 1; transform: translateY(0); }
+          70%  { opacity: 1; transform: translateY(0); }
+          100% { opacity: 0; transform: translateY(-2px); }
         }
       `}</style>
 
