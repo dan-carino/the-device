@@ -69,6 +69,44 @@ export const ENTITIES: Entity[] = [
   },
 ];
 
+export interface GapHint {
+  name: string;   // human-readable control name for Riker's dialogue
+  dir: "higher" | "lower";
+}
+
+/**
+ * Returns the single control with the largest weighted distance from the
+ * entity's target — i.e. the one that, if adjusted, would gain the most proximity.
+ */
+export function getBiggestGapHint(state: DeviceState, entity: Entity): GapHint {
+  const candidates: GapHint[] = [
+    {
+      name: "frequency modulation",
+      dir: state.freqMod < entity.target.freqMod ? "higher" : "lower",
+    },
+    {
+      name: "resonance coefficient",
+      dir: state.resCoeff < entity.target.resCoeff ? "higher" : "lower",
+    },
+    {
+      name: "phase shift",
+      dir: state.phaseShift < entity.target.phaseShift ? "higher" : "lower",
+    },
+    {
+      name: "gain",
+      dir: state.gain < entity.target.gain ? "higher" : "lower",
+    },
+  ];
+  const gaps = [
+    entity.weights.freqMod   * Math.abs(state.freqMod   - entity.target.freqMod),
+    entity.weights.resCoeff  * Math.abs(state.resCoeff  - entity.target.resCoeff),
+    entity.weights.phaseShift* Math.abs(state.phaseShift- entity.target.phaseShift),
+    entity.weights.gain      * Math.abs(state.gain      - entity.target.gain),
+  ];
+  const maxIdx = gaps.indexOf(Math.max(...gaps));
+  return candidates[maxIdx];
+}
+
 export interface ResolverResult {
   entity: Entity | null;
   proximity: number; // 0–1, 1 = fully locked in
