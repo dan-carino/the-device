@@ -11,6 +11,8 @@ import {
   playInitScan,
   playSignalDetected,
   playEntityFound,
+  playEntityFoundUncommon,
+  playEntityFoundRare,
 } from "@/hooks/useAudioContext";
 
 export default function Home() {
@@ -65,9 +67,11 @@ export default function Home() {
       if (prev < 0.3 && nearestProximity >= 0.3) {
         playSignalDetected();
       }
-      // Crossed into full resolution — only chime for species not yet catalogued
+      // Crossed into full resolution — only play for species not yet catalogued
       if (prev < 0.7 && nearestProximity >= 0.7 && !foundIdsRef.current.has(nearestEntity.id)) {
-        playEntityFound();
+        if (nearestEntity.rarity === "RARE") playEntityFoundRare();
+        else if (nearestEntity.rarity === "UNCOMMON") playEntityFoundUncommon();
+        else playEntityFound();
       }
     }
     prevProximityRef.current = nearestProximity;
@@ -137,12 +141,19 @@ export default function Home() {
           ? `${nearestEntity.name} already catalogued. Adjust your parameters — ${remaining} species still undetected in this sector.`
           : `All five species catalogued. Scan complete. Well done, Ensign.`;
       } else {
-        // First contact — lock-in is active or just triggered
-        msg = foundIds.length <= 1
-          ? `Contact confirmed — ${nearestEntity.name}. ${nearestEntity.bioReading}. Log it, Ensign. Four more species are out there.`
-          : remaining > 0
-            ? `${nearestEntity.name} confirmed. ${foundIds.length} of 5 species logged. The rarest require precise multi-axis tuning. Don't stop now.`
+        // First contact — rarity determines the commander's tone
+        if (nearestEntity.rarity === "RARE") {
+          msg = `All stations. That is a ${nearestEntity.name} collective signature. Class Omega. ${nearestEntity.bioReading}. Do not move those dials. Log it now.`;
+        } else if (nearestEntity.rarity === "UNCOMMON") {
+          msg = remaining > 1
+            ? `Commander — ${nearestEntity.name} signature confirmed. ${nearestEntity.bioReading}. Unexpected. Log it. ${remaining} species remaining.`
+            : `${nearestEntity.name} confirmed — and that's the last one. ${nearestEntity.bioReading}. Sector catalogue complete.`;
+        } else {
+          // COMMON
+          msg = remaining > 0
+            ? `Contact confirmed — ${nearestEntity.name}. ${nearestEntity.bioReading}. Log it, Ensign. ${remaining} more species out there.`
             : `${nearestEntity.name}. That's all five. Remarkable work, Ensign. Starfleet Command will want to see these readings.`;
+        }
       }
     } else if (nearestProximity >= 0.5) {
       msg = "Something is resolving on sensors. Stay with it — adjust carefully. Don't let it slip.";
@@ -178,6 +189,11 @@ export default function Home() {
     const t = setInterval(() => setCursorOn(v => !v), 530);
     return () => clearInterval(t);
   }, []);
+
+  // Lock-in overlay colours — RARE (Borg) gets amber warning, others get phosphor green
+  const lockInColors = lockInEntity.rarity === "RARE"
+    ? { glow: "rgba(255,153,0,0.22)", label: "rgba(255,153,0,0.7)", name: "#FF9900", nameShadow: "0 0 28px rgba(255,153,0,0.9), 0 0 10px rgba(255,153,0,0.7)", bio: "rgba(255,153,0,0.55)" }
+    : { glow: "rgba(0,255,136,0.18)", label: "rgba(0,255,136,0.6)", name: "var(--lcars-phosphor)", nameShadow: "0 0 24px rgba(0,255,136,0.8), 0 0 8px rgba(0,255,136,0.6)", bio: "rgba(0,255,136,0.5)" };
 
   return (
     <main style={{
@@ -534,16 +550,16 @@ export default function Home() {
                     animation: "lockInFade 2.8s ease-out forwards",
                     pointerEvents: "none",
                   }}>
-                    {/* Phosphor flash behind the text */}
+                    {/* Glow behind the text */}
                     <div style={{
                       position: "absolute",
                       inset: 0,
-                      background: "radial-gradient(ellipse 70% 50% at 50% 50%, rgba(0,255,136,0.18) 0%, transparent 70%)",
+                      background: `radial-gradient(ellipse 70% 50% at 50% 50%, ${lockInColors.glow} 0%, transparent 70%)`,
                       animation: "lockInGlow 2.8s ease-out forwards",
                     }} />
-                    {/* Entity class */}
+                    {/* Entity class + rarity */}
                     <span className="lcars-label" style={{
-                      color: "rgba(0,255,136,0.6)",
+                      color: lockInColors.label,
                       fontSize: 9,
                       letterSpacing: "0.25em",
                       animation: "lockInText 2.8s ease-out forwards",
@@ -552,11 +568,11 @@ export default function Home() {
                     </span>
                     {/* Entity name — the big reveal */}
                     <span className="lcars-readout" style={{
-                      color: "var(--lcars-phosphor)",
+                      color: lockInColors.name,
                       fontSize: 16,
                       letterSpacing: "0.18em",
                       textAlign: "center",
-                      textShadow: "0 0 24px rgba(0,255,136,0.8), 0 0 8px rgba(0,255,136,0.6)",
+                      textShadow: lockInColors.nameShadow,
                       animation: "lockInText 2.8s ease-out forwards",
                       padding: "0 16px",
                     }}>
@@ -564,7 +580,7 @@ export default function Home() {
                     </span>
                     {/* Bio reading */}
                     <span className="lcars-label" style={{
-                      color: "rgba(0,255,136,0.5)",
+                      color: lockInColors.bio,
                       fontSize: 8,
                       letterSpacing: "0.15em",
                       animation: "lockInText 2.8s ease-out forwards",

@@ -148,7 +148,8 @@ export function playSignalDetected(volume = 0.1) {
 }
 
 /**
- * Three-note ascending chime — played when entity fully resolves (proximity >= 0.7).
+ * COMMON species — three-note ascending chime (C5→E5→G5).
+ * Matter-of-fact. Professional confirmation.
  */
 export function playEntityFound(volume = 0.14) {
   try {
@@ -174,6 +175,85 @@ export function playEntityFound(volume = 0.14) {
       osc.start(t);
       osc.stop(t + 0.36);
     });
+  } catch {
+    // ignore
+  }
+}
+
+/**
+ * UNCOMMON species — four-note warmer chime (C5→E5→G5→B5), triangle wave.
+ * A beat longer, slightly more complex — something unexpected found.
+ */
+export function playEntityFoundUncommon(volume = 0.14) {
+  try {
+    const ctx = getAudioContext();
+    const mg = getMasterGain();
+    if (!mg) return;
+
+    const notes = [523, 659, 784, 988]; // C5, E5, G5, B5
+    notes.forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      const t = ctx.currentTime + i * 0.13;
+
+      osc.type = "triangle";
+      osc.frequency.setValueAtTime(freq, t);
+
+      gain.gain.setValueAtTime(0, t);
+      gain.gain.linearRampToValueAtTime(volume, t + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.42);
+
+      osc.connect(gain);
+      gain.connect(mg);
+      osc.start(t);
+      osc.stop(t + 0.43);
+    });
+  } catch {
+    // ignore
+  }
+}
+
+/**
+ * RARE species (Borg) — three low alarm pulses + a slow descending sweep.
+ * Ominous, mechanical, alarming. Nothing like the others.
+ */
+export function playEntityFoundRare(volume = 0.16) {
+  try {
+    const ctx = getAudioContext();
+    const mg = getMasterGain();
+    if (!mg) return;
+
+    // Three rapid square-wave alarm pulses
+    [0, 0.16, 0.32].forEach(offset => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      const t = ctx.currentTime + offset;
+      osc.type = "square";
+      osc.frequency.setValueAtTime(110, t); // A2 — low and threatening
+      gain.gain.setValueAtTime(0, t);
+      gain.gain.linearRampToValueAtTime(volume * 0.55, t + 0.008);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.13);
+      osc.connect(gain);
+      gain.connect(mg);
+      osc.start(t);
+      osc.stop(t + 0.14);
+    });
+
+    // Slow descending sine sweep — 440Hz → 110Hz over 1s, delayed after the pulses
+    const sweep = ctx.createOscillator();
+    const sweepGain = ctx.createGain();
+    const st = ctx.currentTime + 0.55;
+    sweep.type = "sine";
+    sweep.frequency.setValueAtTime(440, st);
+    sweep.frequency.exponentialRampToValueAtTime(110, st + 1.0);
+    sweepGain.gain.setValueAtTime(0, st);
+    sweepGain.gain.linearRampToValueAtTime(volume, st + 0.06);
+    sweepGain.gain.setValueAtTime(volume, st + 0.8);
+    sweepGain.gain.exponentialRampToValueAtTime(0.001, st + 1.05);
+    sweep.connect(sweepGain);
+    sweepGain.connect(mg);
+    sweep.start(st);
+    sweep.stop(st + 1.1);
   } catch {
     // ignore
   }
