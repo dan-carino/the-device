@@ -167,16 +167,28 @@ export default function Home() {
         }
       }
     } else if (nearestProximity >= 0.5) {
-      // Hint computed from current control values — not in deps, so message only
-      // retypes when the band changes, not on every dial tick
-      const hint = getBiggestGapHint({ freqMod, resCoeff, phaseShift, gain }, nearestEntity);
-      msg = `Almost there. Something is resolving. Fine-tune your ${hint.name} — bring it ${hint.dir}.`;
+      if (foundIds.includes(nearestEntity.id)) {
+        msg = "That signature is already in the catalogue. Keep adjusting — there are uncatalogued contacts in this sector.";
+      } else {
+        // Hint computed from current control values — not in deps, so message only
+        // retypes when the band changes, not on every dial tick
+        const hint = getBiggestGapHint({ freqMod, resCoeff, phaseShift, gain }, nearestEntity);
+        msg = `Almost there. Something is resolving. Fine-tune your ${hint.name} — bring it ${hint.dir}.`;
+      }
     } else if (nearestProximity >= 0.3) {
-      const hint = getBiggestGapHint({ freqMod, resCoeff, phaseShift, gain }, nearestEntity);
-      msg = `Hold on — I'm reading a biosignature. Your ${hint.name} is off. Adjust it ${hint.dir} and hold your position.`;
+      if (foundIds.includes(nearestEntity.id)) {
+        msg = "Already catalogued. Keep searching — adjust your parameters to find a new contact.";
+      } else {
+        const hint = getBiggestGapHint({ freqMod, resCoeff, phaseShift, gain }, nearestEntity);
+        msg = `Hold on — I'm reading a biosignature. Your ${hint.name} is off. Adjust it ${hint.dir} and hold your position.`;
+      }
     } else if (nearestProximity >= 0.1) {
-      const hint = getBiggestGapHint({ freqMod, resCoeff, phaseShift, gain }, nearestEntity);
-      msg = `Something faint on the edge of sensors. Start with your ${hint.name} — try turning it ${hint.dir}.`;
+      if (foundIds.includes(nearestEntity.id)) {
+        msg = "Something on sensors — but it's already logged. Keep scanning for new signatures.";
+      } else {
+        const hint = getBiggestGapHint({ freqMod, resCoeff, phaseShift, gain }, nearestEntity);
+        msg = `Something faint on the edge of sensors. Start with your ${hint.name} — try turning it ${hint.dir}.`;
+      }
     } else {
       msg = "Nothing on sensors yet. The frequency modulation dial is your broadest search parameter. Start there.";
     }
