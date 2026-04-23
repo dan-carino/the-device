@@ -124,12 +124,12 @@ export default function Slider({
           // Top edge is bright — the rim of the routed opening catches the key light
           border: "1px solid rgba(0,0,0,0.85)",
           borderTop: "1px solid rgba(0,0,0,0.95)",
-          borderBottom: "1px solid rgba(255,255,255,0.25)",
           boxShadow: `
             inset 0 6px 14px rgba(0,0,0,0.95),
             inset 0 2px 4px rgba(0,0,0,0.9),
             inset 1px 0 6px rgba(0,0,0,0.5),
-            inset -1px 0 4px rgba(0,0,0,0.4)
+            inset -1px 0 4px rgba(0,0,0,0.4),
+            inset 0 -1.5px 1px 0px rgba(255,255,255,0.22)
             ${dragging ? ", 0 0 10px rgba(255,153,0,0.12)" : ""}
           `,
           position: "relative",
@@ -138,16 +138,6 @@ export default function Slider({
           touchAction: "none",
         }}
       >
-        {/* Slot bottom-rim highlight — lower lip faces upward, catches key light */}
-        <div style={{
-          position: "absolute",
-          bottom: 0, left: 1, right: 1,
-          height: 1,
-          background: "rgba(255,255,255,0.2)",
-          borderRadius: "0 0 6px 6px",
-          pointerEvents: "none",
-        }} />
-
         {/* Left wall highlight — key light grazes the left inner face of the slot */}
         <div style={{
           position: "absolute",
@@ -186,8 +176,8 @@ export default function Slider({
           border: "1px solid rgba(0,0,0,0.7)",
           borderTop: `1px solid rgba(255,255,255,${dragging ? 0.12 : 0.07})`,
           boxShadow: dragging
-            ? "0 2px 8px rgba(0,0,0,0.8), 0 0 12px rgba(255,153,0,0.2), inset 0 1px 0 rgba(255,255,255,0.06)"
-            : "0 2px 6px rgba(0,0,0,0.7), 0 1px 2px rgba(0,0,0,0.9), inset 0 1px 0 rgba(255,255,255,0.04)",
+            ? "0 2px 8px rgba(0,0,0,0.8), 0 8px 12px -4px rgba(0,0,0,0.7), 0 0 12px rgba(255,153,0,0.2), inset 0 1px 0 rgba(255,255,255,0.06)"
+            : "0 2px 6px rgba(0,0,0,0.7), 0 8px 12px -4px rgba(0,0,0,0.65), 0 1px 2px rgba(0,0,0,0.9), inset 0 1px 0 rgba(255,255,255,0.04)",
           transition: "none",
           // Grip lines on thumb
           backgroundImage: dragging
