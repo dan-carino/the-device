@@ -799,21 +799,22 @@ export default function Home() {
                 style={{
                   height: 34,
                   background: scanning
-                    ? "linear-gradient(135deg, #00ff99 0%, #00cc77 50%, #009955 100%)"
-                    : "linear-gradient(135deg, #FF9900 0%, #CC6600 55%, #A84E00 100%)",
-                  border: `1px solid ${scanning ? "rgba(0,255,136,0.5)" : "rgba(255,153,0,0.5)"}`,
+                    ? "rgba(120,20,20,0.55)"
+                    : "rgba(120,70,10,0.55)",
+                  border: `1px solid ${scanning ? "rgba(220,60,60,0.75)" : "rgba(255,165,0,0.8)"}`,
                   borderRadius: 6,
                   display: "flex", alignItems: "center", justifyContent: "center",
                   cursor: "pointer",
                   boxShadow: scanning
-                    ? "0 0 18px rgba(0,255,136,0.35), 0 0 6px rgba(0,255,136,0.25)"
-                    : "0 0 18px rgba(255,120,0,0.4), 0 0 6px rgba(255,153,0,0.3)",
+                    ? `inset 0 0 8px rgba(200,40,40,0.18)`
+                    : `inset 0 0 8px rgba(255,140,0,0.12)`,
                   transition: "all 0.2s",
                   userSelect: "none",
                 }}
               >
                 <span className="lcars-label" style={{
-                  color: "rgba(0,0,0,0.7)",
+                  color: scanning ? "rgba(220,80,80,0.95)" : "rgba(255,180,0,0.95)",
+                  letterSpacing: "0.12em",
                 }}>
                   {scanning ? "ABORT SCAN" : "INIT. SCAN"}
                 </span>
