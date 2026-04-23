@@ -56,6 +56,7 @@ export default function Home() {
 
   // Fire sounds when proximity crosses thresholds while scanning
   const prevProximityRef = useRef(0);
+  const foundIdsRef = useRef(new Set<string>());
   useEffect(() => {
     const prev = prevProximityRef.current;
 
@@ -64,13 +65,13 @@ export default function Home() {
       if (prev < 0.3 && nearestProximity >= 0.3) {
         playSignalDetected();
       }
-      // Crossed into full resolution
-      if (prev < 0.7 && nearestProximity >= 0.7) {
+      // Crossed into full resolution — only chime for species not yet catalogued
+      if (prev < 0.7 && nearestProximity >= 0.7 && !foundIdsRef.current.has(nearestEntity.id)) {
         playEntityFound();
       }
     }
     prevProximityRef.current = nearestProximity;
-  }, [scanning, nearestProximity]);
+  }, [scanning, nearestProximity, nearestEntity]);
 
   // Sensitivity derived from proximity when scanning
   const sensitivityDisplay = scanning
@@ -86,7 +87,8 @@ export default function Home() {
   ];
 
   const [idleIndex, setIdleIndex] = useState(0);
-  const [foundCount, setFoundCount] = useState(0);
+  // foundIds tracks which species have been catalogued — prevents re-triggering
+  const [foundIds, setFoundIds] = useState<string[]>([]);
   const [briefingText, setBriefingText] = useState(IDLE_MESSAGES[0]);
   const [displayedText, setDisplayedText] = useState("");
   const [cursorOn, setCursorOn] = useState(true);
@@ -98,15 +100,19 @@ export default function Home() {
   const [lockInActive, setLockInActive] = useState(false);
   const [lockInEntity, setLockInEntity] = useState(nearestEntity);
 
-  // Track total entities found + trigger lock-in on each new detection
+  // Track catalogued species — only trigger lock-in once per species
   useEffect(() => {
     if (entityFound && !prevEntityFoundRef.current) {
-      // New entity detected — trigger lock-in sequence
-      setFoundCount(c => c + 1);
-      setLockInEntity(nearestEntity);
-      setLockInActive(true);
-      if (lockInTimerRef.current) clearTimeout(lockInTimerRef.current);
-      lockInTimerRef.current = setTimeout(() => setLockInActive(false), 2800);
+      if (!foundIdsRef.current.has(nearestEntity.id)) {
+        // First detection of this species — celebrate
+        foundIdsRef.current.add(nearestEntity.id);
+        setFoundIds(ids => [...ids, nearestEntity.id]);
+        setLockInEntity(nearestEntity);
+        setLockInActive(true);
+        if (lockInTimerRef.current) clearTimeout(lockInTimerRef.current);
+        lockInTimerRef.current = setTimeout(() => setLockInActive(false), 2800);
+      }
+      // If already catalogued — do nothing, no lock-in, no sound
     }
     prevEntityFoundRef.current = entityFound;
   }, [entityFound, nearestEntity]);
@@ -124,12 +130,20 @@ export default function Home() {
     if (!scanning) {
       msg = IDLE_MESSAGES[idleIndex];
     } else if (entityFound) {
-      const remaining = 5 - foundCount;
-      msg = foundCount <= 1
-        ? `Contact confirmed — ${nearestEntity.name}. ${nearestEntity.bioReading}. Log it, Ensign. Four more species are out there. Keep scanning.`
-        : remaining > 0
-          ? `${nearestEntity.name} signature confirmed. ${foundCount} of 5 species logged. The rarest require precise multi-axis tuning. Don't stop now.`
-          : `${nearestEntity.name}. That's all five. Remarkable work, Ensign. This sector's catalogue is complete. Starfleet Command will want to see these readings.`;
+      const alreadyCatalogued = foundIds.includes(nearestEntity.id) && !lockInActive;
+      const remaining = 5 - foundIds.length;
+      if (alreadyCatalogued) {
+        msg = remaining > 0
+          ? `${nearestEntity.name} already catalogued. Adjust your parameters — ${remaining} species still undetected in this sector.`
+          : `All five species catalogued. Scan complete. Well done, Ensign.`;
+      } else {
+        // First contact — lock-in is active or just triggered
+        msg = foundIds.length <= 1
+          ? `Contact confirmed — ${nearestEntity.name}. ${nearestEntity.bioReading}. Log it, Ensign. Four more species are out there.`
+          : remaining > 0
+            ? `${nearestEntity.name} confirmed. ${foundIds.length} of 5 species logged. The rarest require precise multi-axis tuning. Don't stop now.`
+            : `${nearestEntity.name}. That's all five. Remarkable work, Ensign. Starfleet Command will want to see these readings.`;
+      }
     } else if (nearestProximity >= 0.5) {
       msg = "Something is resolving on sensors. Stay with it — adjust carefully. Don't let it slip.";
     } else if (nearestProximity >= 0.3) {
@@ -140,7 +154,7 @@ export default function Home() {
       msg = "Nothing on sensors yet. The frequency modulation dial is your broadest search parameter. Start there.";
     }
     setBriefingText(msg);
-  }, [scanning, entityFound, nearestProximity, idleIndex, nearestEntity, foundCount]);
+  }, [scanning, entityFound, nearestProximity, idleIndex, nearestEntity, foundIds, lockInActive]);
 
   // Typewriter — reruns whenever briefingText changes
   useEffect(() => {
@@ -207,7 +221,7 @@ export default function Home() {
             letterSpacing: "0.1em",
             color: "#bbb",
           }}>
-            SD {foundCount > 0 ? `47634.44 · ${foundCount}/5 LOGGED` : "47634.44"}
+            SD {foundIds.length > 0 ? `47634.44 · ${foundIds.length}/5 LOGGED` : "47634.44"}
           </span>
         </div>
 
