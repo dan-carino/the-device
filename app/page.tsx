@@ -369,6 +369,41 @@ export default function Home() {
           zIndex: 1,
         }} />
 
+        {/* ── Global lighting overlays ──────────────────────────────── */}
+
+        {/* Key light — overhead source brightens the top face of the device.
+            Ellipse centred at top so the top panel face is hottest,
+            falling off toward the bottom which sits in relative shadow. */}
+        <div style={{
+          position: "absolute",
+          inset: 0,
+          borderRadius: 18,
+          background: "radial-gradient(ellipse 90% 55% at 50% -5%, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0.025) 45%, transparent 70%)",
+          pointerEvents: "none",
+          zIndex: 2,
+        }} />
+
+        {/* Amber emissive spill — the left LCARS strip acts as a local light
+            source, casting a warm tint onto the dark chassis beside it. */}
+        <div style={{
+          position: "absolute",
+          inset: 0,
+          borderRadius: 18,
+          background: "radial-gradient(ellipse 35% 70% at 4% 60%, rgba(255,130,0,0.07) 0%, transparent 100%)",
+          pointerEvents: "none",
+          zIndex: 2,
+        }} />
+
+        {/* Blue emissive spill — same from the right strip. */}
+        <div style={{
+          position: "absolute",
+          inset: 0,
+          borderRadius: 18,
+          background: "radial-gradient(ellipse 30% 70% at 98% 60%, rgba(120,120,255,0.06) 0%, transparent 100%)",
+          pointerEvents: "none",
+          zIndex: 2,
+        }} />
+
         {/* Bottom edge — in shadow, darker */}
         <div style={{
           position: "absolute",
