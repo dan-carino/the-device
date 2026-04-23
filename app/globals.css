@@ -1,26 +1,57 @@
 @import "tailwindcss";
 
+/* ─── LCARS colour tokens ─────────────────────────────────── */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --lcars-black:      #000000;
+  --lcars-panel:      #111111;
+  --lcars-amber:      #FF9900;
+  --lcars-amber-dark: #CC6600;
+  --lcars-blue:       #9999FF;
+  --lcars-lavender:   #CC99CC;
+  --lcars-red:        #FF4444;
+  --lcars-phosphor:   #00FF88;
+  --lcars-noise:      #FFAA00;
+  --lcars-screen:     #000500;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+/* ─── Base reset ──────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--lcars-black);
+  color: var(--lcars-amber);
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-weight: 700;
+  font-stretch: condensed;
+  letter-spacing: 0.12em;
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* ─── LCARS typography utilities ──────────────────────────── */
+.lcars-label {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--lcars-amber);
+  font-stretch: condensed;
+}
+
+.lcars-label-dim {
+  color: var(--lcars-amber-dark);
+}
+
+.lcars-readout {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--lcars-amber);
+  font-variant-numeric: tabular-nums;
 }
