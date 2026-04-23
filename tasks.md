@@ -90,14 +90,14 @@ Each task is scoped to one AI session. Start each session with: "Read all planni
   - `requestAnimationFrame` loop — smooth 60fps animation
   - `NO SIGNAL DETECTED` readout text — LCARS style, bottom of display, 9px amber
 
-- [ ] **Task 4.2** — Scanline + vignette + LCARS frame
+- [x] **Task 4.2** — Scanline + vignette + LCARS frame
   - CSS scanline overlay: `repeating-linear-gradient` 2px lines, 5% opacity black
   - CSS vignette: `box-shadow: inset 0 0 60px rgba(0,0,0,0.8)`
   - LCARS data strips: left and right of canvas — vertical amber/orange/blue bars, static label text
     - Left strip: `BIO-SCAN`, `FREQ. ANALYSIS`, `LIFE FORM DET.`
     - Right strip: `STATUS: SCANNING`, `SENSITIVITY: —`, `CLASS: —`
 
-- [ ] **Task 4.3** — Noise responds to DeviceState
+- [x] **Task 4.3** — Noise responds to DeviceState
   - Wire DeviceState into OscilloscopeDisplay
   - Noise texture shifts subtly as controls change — frequency and amplitude vary with FREQ. MOD. α and GAIN Δ
   - Not entity resolution yet — just texture variation to make the screen feel responsive
@@ -138,7 +138,7 @@ Each task is scoped to one AI session. Start each session with: "Read all planni
 
 ## Phase 6 — Polish
 
-- [ ] **Task 6.1** — Glow + ambient effects
+- [x] **Task 6.1** — Glow + ambient effects
   - Amber glow (`box-shadow`) on all controls when active
   - Alert light component: pulsing amber circle on left status strip, steadies on entity found
   - Background hum: Web Audio oscillator, very low frequency (~60Hz), very low volume (~0.03 gain), starts on first interaction
