@@ -222,17 +222,12 @@ export default function Home() {
   const BASE_GLARE     = "radial-gradient(ellipse 65% 50% at 38% 28%, rgba(255,255,255,0.055) 0%, rgba(255,255,255,0.018) 45%, transparent 70%)";
 
   const handleDeviceMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    if (tiltRafRef.current) return; // one update per frame
+    if (tiltRafRef.current) return;
     const rect = e.currentTarget.getBoundingClientRect();
-    const nx = (e.clientX - rect.left - rect.width  / 2) / (rect.width  / 2); // –1…1
-    const ny = (e.clientY - rect.top  - rect.height / 2) / (rect.height / 2); // –1…1
+    const nx = (e.clientX - rect.left - rect.width  / 2) / (rect.width  / 2);
+    const ny = (e.clientY - rect.top  - rect.height / 2) / (rect.height / 2);
     tiltRafRef.current = requestAnimationFrame(() => {
-      if (deviceRef.current) {
-        deviceRef.current.style.transform =
-          `perspective(1100px) rotateX(${2.5 - ny * 2.8}deg) rotateY(${nx * 4}deg)`;
-      }
       if (glareRef.current) {
-        // Glare travels upper-left → lower-right as mouse sweeps across
         glareRef.current.style.background =
           `radial-gradient(ellipse 65% 50% at ${38 + nx * 22}% ${28 + ny * 18}%, rgba(255,255,255,0.072) 0%, rgba(255,255,255,0.02) 45%, transparent 70%)`;
       }
@@ -242,8 +237,7 @@ export default function Home() {
 
   const handleDeviceMouseLeave = useCallback(() => {
     if (tiltRafRef.current) { cancelAnimationFrame(tiltRafRef.current); tiltRafRef.current = null; }
-    if (deviceRef.current)  deviceRef.current.style.transform  = BASE_TRANSFORM;
-    if (glareRef.current)   glareRef.current.style.background  = BASE_GLARE;
+    if (glareRef.current) glareRef.current.style.background = BASE_GLARE;
   }, []);
 
   // Lock-in overlay colours — RARE (Borg) gets amber warning, others get phosphor green
@@ -348,7 +342,6 @@ export default function Home() {
           `,
           transform: BASE_TRANSFORM,
           transformOrigin: "center 55%",
-          transition: "transform 0.18s ease-out",
           display: "flex",
           flexDirection: "column",
           overflow: "hidden",
