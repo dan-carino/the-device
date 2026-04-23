@@ -81,10 +81,7 @@ export default function Home() {
     <main style={{
       width: "100vw",
       height: "100vh",
-      background: "#0c0c0c",
-      backgroundImage: `
-        radial-gradient(ellipse 90% 60% at 50% 55%, #181310 0%, #0c0c0c 65%)
-      `,
+      background: "#f0eeeb",
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
@@ -550,23 +547,10 @@ export default function Home() {
         bottom: "calc(50vh - 300px)",
         left: "50%",
         transform: "translateX(-50%)",
-        width: 720,
-        height: 60,
-        background: "radial-gradient(ellipse 80% 100% at 50% 0%, rgba(0,0,0,0.55) 0%, transparent 100%)",
-        filter: "blur(8px)",
-        pointerEvents: "none",
-      }} />
-
-      {/* Surface glow — amber from the device screen bleeding onto the desk */}
-      <div style={{
-        position: "absolute",
-        bottom: "calc(50vh - 330px)",
-        left: "50%",
-        transform: "translateX(-50%)",
-        width: 500,
+        width: 760,
         height: 80,
-        background: "radial-gradient(ellipse 60% 100% at 50% 0%, rgba(200,100,0,0.05) 0%, transparent 100%)",
-        filter: "blur(16px)",
+        background: "radial-gradient(ellipse 80% 100% at 50% 0%, rgba(0,0,0,0.22) 0%, transparent 100%)",
+        filter: "blur(12px)",
         pointerEvents: "none",
       }} />
 
