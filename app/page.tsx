@@ -888,9 +888,9 @@ export default function Home() {
           DEV · NOISE TEXTURE
         </span>
         {([
-          { label: "Opacity", value: noiseOpacity, set: setNoiseOpacity, min: 0, max: 0.15, step: 0.001 },
-          { label: "Frequency", value: noiseFreq,   set: setNoiseFreq,   min: 0.2, max: 1.8, step: 0.01 },
-          { label: "Octaves",   value: noiseOctaves, set: setNoiseOctaves, min: 1, max: 8,   step: 1 },
+          { label: "Opacity",   value: noiseOpacity,  set: setNoiseOpacity,  min: 0,    max: 0.3, step: 0.001 },
+          { label: "Frequency", value: noiseFreq,     set: setNoiseFreq,     min: 0.02, max: 2.0, step: 0.01  },
+          { label: "Octaves",   value: noiseOctaves,  set: setNoiseOctaves,  min: 1,    max: 6,   step: 1     },
         ] as const).map(({ label, value, set, min, max, step }) => (
           <div key={label} style={{ display: "flex", flexDirection: "column", gap: 2 }}>
             <div style={{ display: "flex", justifyContent: "space-between" }}>
