@@ -171,7 +171,7 @@ export default function Home() {
       {/* ── Commander briefing ─────────────────────────────────── */}
       <div style={{
         width: 780,
-        marginBottom: 8,
+        marginBottom: 32,
         display: "flex",
         flexDirection: "column",
         gap: 10,
