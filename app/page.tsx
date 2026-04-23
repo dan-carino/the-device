@@ -786,21 +786,21 @@ export default function Home() {
                 style={{
                   height: 34,
                   background: scanning
-                    ? "radial-gradient(ellipse 80% 60% at 50% 50%, rgba(0,255,136,0.28) 0%, rgba(0,255,136,0.08) 60%, rgba(0,255,136,0.03) 100%)"
-                    : "radial-gradient(ellipse 80% 60% at 50% 50%, rgba(255,153,0,0.45) 0%, rgba(204,102,0,0.2) 60%, rgba(180,80,0,0.05) 100%)",
-                  border: `1px solid ${scanning ? "var(--lcars-phosphor)" : "var(--lcars-amber)"}`,
+                    ? "linear-gradient(135deg, #00ff99 0%, #00cc77 50%, #009955 100%)"
+                    : "linear-gradient(135deg, #FF9900 0%, #CC6600 55%, #A84E00 100%)",
+                  border: `1px solid ${scanning ? "rgba(0,255,136,0.5)" : "rgba(255,153,0,0.5)"}`,
                   borderRadius: 6,
                   display: "flex", alignItems: "center", justifyContent: "center",
                   cursor: "pointer",
                   boxShadow: scanning
-                    ? "0 0 16px rgba(0,255,136,0.2), inset 0 1px 0 rgba(255,255,255,0.05)"
-                    : "0 0 12px rgba(255,153,0,0.15), inset 0 1px 0 rgba(255,255,255,0.05)",
+                    ? "0 0 18px rgba(0,255,136,0.35), 0 0 6px rgba(0,255,136,0.25)"
+                    : "0 0 18px rgba(255,120,0,0.4), 0 0 6px rgba(255,153,0,0.3)",
                   transition: "all 0.2s",
                   userSelect: "none",
                 }}
               >
                 <span className="lcars-label" style={{
-                  color: scanning ? "var(--lcars-phosphor)" : "var(--lcars-amber)",
+                  color: "rgba(0,0,0,0.7)",
                 }}>
                   {scanning ? "ABORT SCAN" : "INIT. SCAN"}
                 </span>
