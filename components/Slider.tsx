@@ -110,15 +110,20 @@ export default function Slider({
         style={{
           width: 20,
           height: TRACK_HEIGHT,
-          background: "#0d0d0d",
+          background: "linear-gradient(180deg, #060606 0%, #0c0c0c 100%)",
           borderRadius: 6,
-          border: `1px solid rgba(255,153,0,${dragging ? 0.6 : 0.3})`,
-          boxShadow: `inset 0 2px 4px rgba(0,0,0,0.6)${dragging ? ", 0 0 8px rgba(255,153,0,0.15)" : ""}`,
+          border: "1px solid rgba(0,0,0,0.8)",
+          borderTop: "1px solid rgba(0,0,0,0.95)",
+          boxShadow: `
+            inset 0 3px 8px rgba(0,0,0,0.9),
+            inset 0 0 0 1px rgba(0,0,0,0.6),
+            0 1px 0 rgba(255,255,255,0.03)
+            ${dragging ? ", 0 0 10px rgba(255,153,0,0.12)" : ""}
+          `,
           position: "relative",
-          cursor: dragging ? "ns-resize" : "ns-resize",
+          cursor: "ns-resize",
           userSelect: "none",
           touchAction: "none",
-          transition: "border-color 0.15s, box-shadow 0.15s",
         }}
       >
         {/* Fill bar — shows current level */}
@@ -135,25 +140,31 @@ export default function Slider({
           }}
         />
 
-        {/* Thumb */}
-        <div
-          style={{
-            position: "absolute",
-            bottom: thumbBottom,
-            left: -4,
-            right: -4,
-            height: THUMB_HEIGHT,
-            background: dragging
-              ? "linear-gradient(180deg, #444, #2a2a2a)"
-              : "linear-gradient(180deg, #3a3a3a, #222)",
-            border: `1px solid rgba(255,153,0,${dragging ? 0.9 : 0.6})`,
-            borderRadius: 4,
-            boxShadow: dragging
-              ? "0 0 10px rgba(255,153,0,0.35)"
-              : "0 0 8px rgba(255,153,0,0.2)",
-            transition: "none",
-          }}
-        />
+        {/* Thumb — machined slider cap */}
+        <div style={{
+          position: "absolute",
+          bottom: thumbBottom,
+          left: -5,
+          right: -5,
+          height: THUMB_HEIGHT,
+          // Top-light gradient
+          background: dragging
+            ? "linear-gradient(180deg, #484848 0%, #2e2e2e 45%, #1e1e1e 100%)"
+            : "linear-gradient(180deg, #3e3e3e 0%, #282828 45%, #181818 100%)",
+          borderRadius: 4,
+          border: "1px solid rgba(0,0,0,0.7)",
+          borderTop: `1px solid rgba(255,255,255,${dragging ? 0.12 : 0.07})`,
+          boxShadow: dragging
+            ? "0 2px 8px rgba(0,0,0,0.8), 0 0 12px rgba(255,153,0,0.2), inset 0 1px 0 rgba(255,255,255,0.06)"
+            : "0 2px 6px rgba(0,0,0,0.7), 0 1px 2px rgba(0,0,0,0.9), inset 0 1px 0 rgba(255,255,255,0.04)",
+          transition: "none",
+          // Grip lines on thumb
+          backgroundImage: dragging
+            ? `linear-gradient(180deg, #484848 0%, #2e2e2e 45%, #1e1e1e 100%),
+               repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(0,0,0,0.15) 2px, rgba(0,0,0,0.15) 4px)`
+            : `linear-gradient(180deg, #3e3e3e 0%, #282828 45%, #181818 100%),
+               repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(0,0,0,0.12) 2px, rgba(0,0,0,0.12) 4px)`,
+        }} />
       </div>
 
       <span

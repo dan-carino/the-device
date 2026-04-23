@@ -26,7 +26,6 @@ export default function RotaryDial({
   defaultValue = 0.5,
   onChange,
 }: RotaryDialProps) {
-  // angle in degrees: -RANGE_DEG → +RANGE_DEG (0 = center-top)
   const [angle, setAngle] = useState(() => (defaultValue * 2 - 1) * RANGE_DEG);
   const [dragging, setDragging] = useState(false);
 
@@ -35,14 +34,10 @@ export default function RotaryDial({
   const lastYRef = useRef<number | null>(null);
   const rafRef = useRef<number | null>(null);
   const dialRef = useRef<HTMLDivElement>(null);
-  // Track last angle at which a tick was played (in degrees)
   const lastTickAngleRef = useRef(angle);
-  const TICK_INTERVAL = 5; // degrees between ticks
+  const TICK_INTERVAL = 5;
 
-  // Keep angleRef in sync
-  useEffect(() => {
-    angleRef.current = angle;
-  }, [angle]);
+  useEffect(() => { angleRef.current = angle; }, [angle]);
 
   const stopMomentum = useCallback(() => {
     if (rafRef.current !== null) {
@@ -51,12 +46,10 @@ export default function RotaryDial({
     }
   }, []);
 
-  // Fire a tick sound every TICK_INTERVAL degrees of travel
   const maybeTick = useCallback((newAngle: number) => {
     const prev = lastTickAngleRef.current;
     const travelled = Math.abs(newAngle - prev);
     if (travelled >= TICK_INTERVAL) {
-      // pitch slightly varies with position for organic feel
       const pitchVariance = 800 + (newAngle / RANGE_DEG) * 200;
       playTick(pitchVariance, 0.06);
       lastTickAngleRef.current = newAngle;
@@ -67,55 +60,38 @@ export default function RotaryDial({
     stopMomentum();
     const tick = () => {
       velocityRef.current *= FRICTION;
-      if (Math.abs(velocityRef.current) < 0.05) {
-        velocityRef.current = 0;
-        return;
-      }
-      const next = clamp(
-        angleRef.current + velocityRef.current,
-        -RANGE_DEG,
-        RANGE_DEG
-      );
+      if (Math.abs(velocityRef.current) < 0.05) { velocityRef.current = 0; return; }
+      const next = clamp(angleRef.current + velocityRef.current, -RANGE_DEG, RANGE_DEG);
       maybeTick(next);
       angleRef.current = next;
       setAngle(next);
-      onChange?.(((next / RANGE_DEG) * 0.5 + 0.5));
+      onChange?.((next / RANGE_DEG) * 0.5 + 0.5);
       rafRef.current = requestAnimationFrame(tick);
     };
     rafRef.current = requestAnimationFrame(tick);
   }, [stopMomentum, onChange, maybeTick]);
 
-  const onPointerDown = useCallback(
-    (e: React.PointerEvent) => {
-      e.preventDefault();
-      stopMomentum();
-      velocityRef.current = 0;
-      lastYRef.current = e.clientY;
-      setDragging(true);
-      dialRef.current?.setPointerCapture(e.pointerId);
-    },
-    [stopMomentum]
-  );
+  const onPointerDown = useCallback((e: React.PointerEvent) => {
+    e.preventDefault();
+    stopMomentum();
+    velocityRef.current = 0;
+    lastYRef.current = e.clientY;
+    setDragging(true);
+    dialRef.current?.setPointerCapture(e.pointerId);
+  }, [stopMomentum]);
 
-  const onPointerMove = useCallback(
-    (e: React.PointerEvent) => {
-      if (lastYRef.current === null) return;
-      const dy = lastYRef.current - e.clientY; // drag up = positive
-      const delta = dy / PX_PER_DEG;
-      velocityRef.current = delta * 0.6; // smooth velocity estimate
-      const next = clamp(
-        angleRef.current + delta,
-        -RANGE_DEG,
-        RANGE_DEG
-      );
-      maybeTick(next);
-      angleRef.current = next;
-      setAngle(next);
-      onChange?.((next / RANGE_DEG) * 0.5 + 0.5);
-      lastYRef.current = e.clientY;
-    },
-    [onChange, maybeTick]
-  );
+  const onPointerMove = useCallback((e: React.PointerEvent) => {
+    if (lastYRef.current === null) return;
+    const dy = lastYRef.current - e.clientY;
+    const delta = dy / PX_PER_DEG;
+    velocityRef.current = delta * 0.6;
+    const next = clamp(angleRef.current + delta, -RANGE_DEG, RANGE_DEG);
+    maybeTick(next);
+    angleRef.current = next;
+    setAngle(next);
+    onChange?.((next / RANGE_DEG) * 0.5 + 0.5);
+    lastYRef.current = e.clientY;
+  }, [onChange, maybeTick]);
 
   const onPointerUp = useCallback(() => {
     lastYRef.current = null;
@@ -125,106 +101,120 @@ export default function RotaryDial({
 
   useEffect(() => () => stopMomentum(), [stopMomentum]);
 
-  // Tick mark rotates with the knob. 0° → tick at top (12 o'clock).
-  const tickRotation = angle; // degrees
-
-  // Glow intensity scales with distance from center
-  const glowIntensity = Math.abs(angle) / RANGE_DEG;
-  const glowAlpha = 0.15 + glowIntensity * 0.3;
+  const tickRotation = angle;
+  const wellSize = size + 10;
 
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        gap: 6,
-      }}
-    >
-      <div
-        ref={dialRef}
-        onPointerDown={onPointerDown}
-        onPointerMove={onPointerMove}
-        onPointerUp={onPointerUp}
-        onPointerCancel={onPointerUp}
-        style={{
-          width: size,
-          height: size,
-          borderRadius: "50%",
-          background:
-            "radial-gradient(circle at 35% 35%, #2a2a2a, #0d0d0d)",
-          border: `2px solid rgba(255,153,0,${dragging ? 0.9 : 0.5})`,
-          boxShadow: `
-            0 0 0 3px rgba(0,0,0,0.5),
-            0 0 ${dragging ? 20 : 12}px rgba(255,153,0,${glowAlpha}),
-            inset 0 1px 0 rgba(255,255,255,0.05)
-          `,
-          cursor: dragging ? "grabbing" : "grab",
-          position: "relative",
-          userSelect: "none",
-          touchAction: "none",
-          transition: dragging
-            ? "none"
-            : "border-color 0.15s, box-shadow 0.15s",
-        }}
-      >
-        {/* Tick mark — rotates with knob */}
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            transform: `rotate(${tickRotation}deg)`,
-            transition: "none",
-          }}
-        >
-          <div
-            style={{
-              position: "absolute",
-              top: "10%",
-              left: "50%",
-              transform: "translateX(-50%)",
-              width: 2,
-              height: "22%",
-              background: dragging
-                ? "rgba(255,153,0,0.9)"
-                : "rgba(255,255,255,0.75)",
-              borderRadius: 1,
-              boxShadow: dragging
-                ? "0 0 4px rgba(255,153,0,0.8)"
-                : "none",
-            }}
-          />
-        </div>
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
 
-        {/* Center dot */}
+      {/* Recessed mount well — the panel depression the knob sits in */}
+      <div style={{
+        width: wellSize,
+        height: wellSize,
+        borderRadius: "50%",
+        background: "radial-gradient(circle at 40% 35%, #0e0e0e, #060606)",
+        boxShadow: `
+          inset 0 3px 8px rgba(0,0,0,0.95),
+          inset 0 1px 3px rgba(0,0,0,0.9),
+          inset 0 0 0 1px rgba(0,0,0,0.7),
+          0 1px 0 rgba(255,255,255,0.04)
+        `,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        position: "relative",
+      }}>
+
+        {/* The knob — knurled outer ring */}
         <div
+          ref={dialRef}
+          onPointerDown={onPointerDown}
+          onPointerMove={onPointerMove}
+          onPointerUp={onPointerUp}
+          onPointerCancel={onPointerUp}
           style={{
-            position: "absolute",
-            inset: 0,
+            width: size,
+            height: size,
+            borderRadius: "50%",
+            // Knurling: alternating dark/mid segments radiating from center
+            background: `repeating-conic-gradient(
+              #0f0f0f 0deg 5deg,
+              #1d1d1d 5deg 10deg
+            )`,
+            boxShadow: dragging
+              ? `0 0 0 1px rgba(0,0,0,0.9), 0 0 18px rgba(255,153,0,0.2), 0 3px 12px rgba(0,0,0,0.8)`
+              : `0 0 0 1px rgba(0,0,0,0.9), 0 3px 10px rgba(0,0,0,0.8), 0 1px 3px rgba(0,0,0,0.9)`,
+            cursor: dragging ? "grabbing" : "grab",
+            position: "relative",
+            userSelect: "none",
+            touchAction: "none",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
+            transition: dragging ? "none" : "box-shadow 0.2s",
           }}
         >
-          <div
-            style={{
-              width: 4,
-              height: 4,
+          {/* Inner smooth face — sits above the knurling */}
+          <div style={{
+            position: "absolute",
+            width: "70%",
+            height: "70%",
+            borderRadius: "50%",
+            background: `
+              radial-gradient(ellipse 55% 38% at 36% 26%, rgba(255,255,255,0.09) 0%, transparent 100%),
+              radial-gradient(ellipse 70% 70% at 68% 74%, rgba(0,0,0,0.55) 0%, transparent 65%),
+              radial-gradient(circle at 44% 40%, #2d2d2d 0%, #1c1c1c 40%, #101010 100%)
+            `,
+            boxShadow: `
+              0 2px 8px rgba(0,0,0,0.85),
+              inset 0 1px 2px rgba(255,255,255,0.05),
+              0 0 0 1px rgba(0,0,0,0.5)
+            `,
+          }} />
+
+          {/* Tick mark — rotates with the knob */}
+          <div style={{
+            position: "absolute",
+            inset: 0,
+            borderRadius: "50%",
+            transform: `rotate(${tickRotation}deg)`,
+          }}>
+            {/* Tick sits between knurling edge and inner face */}
+            <div style={{
+              position: "absolute",
+              top: "6%",
+              left: "50%",
+              transform: "translateX(-50%)",
+              width: 2,
+              height: "19%",
+              background: dragging
+                ? "rgba(255,153,0,0.95)"
+                : "rgba(230,230,230,0.8)",
+              borderRadius: 1,
+              boxShadow: dragging ? "0 0 5px rgba(255,153,0,0.9)" : "0 0 2px rgba(0,0,0,0.5)",
+            }} />
+          </div>
+
+          {/* Amber glow ring — only when dragging */}
+          {dragging && (
+            <div style={{
+              position: "absolute",
+              inset: -1,
               borderRadius: "50%",
-              background: "rgba(255,153,0,0.3)",
-            }}
-          />
+              border: "1px solid rgba(255,153,0,0.35)",
+              boxShadow: "0 0 10px rgba(255,153,0,0.25)",
+              pointerEvents: "none",
+            }} />
+          )}
         </div>
       </div>
 
-      <span
-        className="lcars-label"
-        style={{
-          fontSize: 7,
-          color: "var(--lcars-amber-dark)",
-          textAlign: "center",
-        }}
-      >
+      <span className="lcars-label" style={{
+        fontSize: 7,
+        color: "var(--lcars-amber-dark)",
+        textAlign: "center",
+        letterSpacing: "0.08em",
+      }}>
         {label}
       </span>
     </div>

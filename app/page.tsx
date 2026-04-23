@@ -81,9 +81,9 @@ export default function Home() {
     <main style={{
       width: "100vw",
       height: "100vh",
-      background: "#0d0d0d",
+      background: "#0c0c0c",
       backgroundImage: `
-        radial-gradient(ellipse at 50% 30%, #1a1410 0%, #0d0d0d 70%)
+        radial-gradient(ellipse 90% 60% at 50% 55%, #181310 0%, #0c0c0c 65%)
       `,
       display: "flex",
       alignItems: "center",
@@ -96,30 +96,84 @@ export default function Home() {
         position: "relative",
         width: 780,
         height: 520,
-        borderRadius: 20,
-        background: "linear-gradient(160deg, #262626 0%, #1a1a1a 40%, #141414 100%)",
+        borderRadius: 18,
+        // Directional body gradient — light from upper-left
+        background: "linear-gradient(148deg, #282626 0%, #1e1c1c 35%, #181616 65%, #131111 100%)",
+        // Multi-layer shadow: contact → near → mid → ambient penumbra
         boxShadow: `
-          0 0 0 1px rgba(255,255,255,0.06),
-          0 2px 0 0 rgba(255,255,255,0.08),
-          0 8px 32px rgba(0,0,0,0.6),
-          0 24px 80px rgba(0,0,0,0.5),
-          0 60px 120px rgba(0,0,0,0.4)
+          0 0 0 1px rgba(255,255,255,0.055),
+          0 1px 2px rgba(0,0,0,0.95),
+          0 4px 10px rgba(0,0,0,0.85),
+          0 14px 30px rgba(0,0,0,0.65),
+          0 30px 60px rgba(0,0,0,0.45),
+          0 60px 100px rgba(0,0,0,0.28),
+          0 100px 140px rgba(0,0,0,0.16),
+          -3px 6px 20px rgba(0,0,0,0.4)
         `,
+        // Slight perspective tilt — like you're looking down at the device on a desk
+        transform: "perspective(1100px) rotateX(2.5deg)",
+        transformOrigin: "center 55%",
         display: "flex",
         flexDirection: "column",
         overflow: "hidden",
       }}>
 
-        {/* Top edge highlight — catches light */}
+        {/* Top edge highlight — bright, catches the key light */}
         <div style={{
           position: "absolute",
           top: 0,
-          left: 20,
-          right: 20,
+          left: 18,
+          right: 18,
           height: 1,
-          background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent)",
+          background: "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.18) 25%, rgba(255,255,255,0.28) 50%, rgba(255,255,255,0.18) 75%, transparent 100%)",
+          zIndex: 10,
+          borderRadius: "18px 18px 0 0",
+        }} />
+
+        {/* Left edge highlight — secondary light */}
+        <div style={{
+          position: "absolute",
+          top: 18,
+          left: 0,
+          bottom: 18,
+          width: 1,
+          background: "linear-gradient(180deg, transparent 0%, rgba(255,255,255,0.09) 20%, rgba(255,255,255,0.09) 80%, transparent 100%)",
           zIndex: 10,
         }} />
+
+        {/* Bottom edge — in shadow, darker */}
+        <div style={{
+          position: "absolute",
+          bottom: 0,
+          left: 18,
+          right: 18,
+          height: 1,
+          background: "rgba(0,0,0,0.6)",
+          zIndex: 10,
+        }} />
+
+        {/* Panel corner screws — 4 × machined detail */}
+        {[
+          { top: 10, left: 10 },
+          { top: 10, right: 10 },
+          { bottom: 10, left: 10 },
+          { bottom: 10, right: 10 },
+        ].map((pos, i) => (
+          <div key={i} style={{
+            position: "absolute",
+            ...pos,
+            width: 8,
+            height: 8,
+            borderRadius: "50%",
+            background: "radial-gradient(circle at 35% 30%, #2e2e2e, #111)",
+            boxShadow: "inset 0 1px 2px rgba(0,0,0,0.9), 0 1px 0 rgba(255,255,255,0.04)",
+            zIndex: 10,
+          }}>
+            {/* Phillips cross */}
+            <div style={{ position: "absolute", top: "45%", left: "15%", right: "15%", height: "1px", background: "rgba(0,0,0,0.6)" }} />
+            <div style={{ position: "absolute", left: "45%", top: "15%", bottom: "15%", width: "1px", background: "rgba(0,0,0,0.6)" }} />
+          </div>
+        ))}
 
         {/* ── LCARS amber top strip ───────────────────────────────── */}
         <div style={{
@@ -225,12 +279,19 @@ export default function Home() {
             flexDirection: "column",
             minWidth: 0,
           }}>
-            {/* Screen bezel */}
+            {/* Screen bezel — deeply recessed into the panel */}
             <div style={{
               flex: 1,
-              borderRadius: 8,
-              background: "#080808",
-              boxShadow: "inset 0 2px 8px rgba(0,0,0,0.8), inset 0 0 0 1px rgba(255,153,0,0.2)",
+              borderRadius: 6,
+              background: "#050505",
+              boxShadow: `
+                inset 0 3px 12px rgba(0,0,0,0.95),
+                inset 0 1px 4px rgba(0,0,0,0.9),
+                inset 0 0 0 1px rgba(0,0,0,0.8),
+                inset 2px 0 8px rgba(0,0,0,0.5),
+                inset -2px 0 8px rgba(0,0,0,0.5),
+                0 0 0 1px rgba(255,153,0,0.12)
+              `,
               position: "relative",
               overflow: "hidden",
               display: "flex",
@@ -284,8 +345,18 @@ export default function Home() {
                 {/* Vignette */}
                 <div style={{
                   position: "absolute", inset: 0,
-                  boxShadow: "inset 0 0 40px rgba(0,0,0,0.65)",
+                  boxShadow: "inset 0 0 50px rgba(0,0,0,0.75)",
                   pointerEvents: "none", zIndex: 2,
+                }} />
+
+                {/* Glass sheen — curved screen surface reflection */}
+                <div style={{
+                  position: "absolute",
+                  top: 0, left: 0, right: 0,
+                  height: "28%",
+                  background: "linear-gradient(180deg, rgba(255,255,255,0.022) 0%, rgba(255,255,255,0.008) 60%, transparent 100%)",
+                  pointerEvents: "none",
+                  zIndex: 4,
                 }} />
                 {/* Status labels overlay */}
                 <div style={{
@@ -347,9 +418,12 @@ export default function Home() {
           }}>
             {/* Primary dials */}
             <div style={{
-              background: "#111",
+              background: "linear-gradient(160deg, #0f0f0f 0%, #0a0a0a 100%)",
               borderRadius: 10,
-              border: "1px solid rgba(255,153,0,0.15)",
+              border: "1px solid rgba(0,0,0,0.8)",
+              borderTop: "1px solid rgba(255,255,255,0.04)",
+              borderLeft: "1px solid rgba(255,255,255,0.03)",
+              boxShadow: "inset 0 2px 8px rgba(0,0,0,0.7), inset 0 0 0 1px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.03)",
               padding: "14px 12px",
               display: "flex",
               flexDirection: "column",
@@ -365,9 +439,12 @@ export default function Home() {
 
             {/* Sliders + switches */}
             <div style={{
-              background: "#111",
+              background: "linear-gradient(160deg, #0f0f0f 0%, #0a0a0a 100%)",
               borderRadius: 10,
-              border: "1px solid rgba(255,153,0,0.15)",
+              border: "1px solid rgba(0,0,0,0.8)",
+              borderTop: "1px solid rgba(255,255,255,0.04)",
+              borderLeft: "1px solid rgba(255,255,255,0.03)",
+              boxShadow: "inset 0 2px 8px rgba(0,0,0,0.7), inset 0 0 0 1px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.03)",
               padding: "14px 12px",
               flex: 1,
               display: "flex",
@@ -467,15 +544,29 @@ export default function Home() {
 
       </div>
 
-      {/* Surface reflection */}
+      {/* Ground shadow — casts below the device on the desk surface */}
       <div style={{
         position: "absolute",
-        bottom: "calc(50vh - 320px)",
+        bottom: "calc(50vh - 300px)",
         left: "50%",
         transform: "translateX(-50%)",
-        width: 600,
-        height: 40,
-        background: "radial-gradient(ellipse, rgba(255,153,0,0.04) 0%, transparent 70%)",
+        width: 720,
+        height: 60,
+        background: "radial-gradient(ellipse 80% 100% at 50% 0%, rgba(0,0,0,0.55) 0%, transparent 100%)",
+        filter: "blur(8px)",
+        pointerEvents: "none",
+      }} />
+
+      {/* Surface glow — amber from the device screen bleeding onto the desk */}
+      <div style={{
+        position: "absolute",
+        bottom: "calc(50vh - 330px)",
+        left: "50%",
+        transform: "translateX(-50%)",
+        width: 500,
+        height: 80,
+        background: "radial-gradient(ellipse 60% 100% at 50% 0%, rgba(200,100,0,0.05) 0%, transparent 100%)",
+        filter: "blur(16px)",
         pointerEvents: "none",
       }} />
 
