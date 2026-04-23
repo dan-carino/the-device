@@ -5,7 +5,7 @@ import RotaryDial from "@/components/RotaryDial";
 import Slider from "@/components/Slider";
 import ToggleSwitch from "@/components/ToggleSwitch";
 import Oscilloscope from "@/components/Oscilloscope";
-import { resolveEntity, getBiggestGapHint, getNearestUnfound, getSwitchIssue } from "@/data/entities";
+import { resolveEntity, getBiggestGapHint, getNearestUnfound, getSwitchIssue, ENTITIES } from "@/data/entities";
 import {
   startAmbientHum,
   playInitScan,
@@ -93,6 +93,24 @@ export default function Home() {
   const [idleIndex, setIdleIndex] = useState(0);
   // foundIds tracks which species have been catalogued — prevents re-triggering
   const [foundIds, setFoundIds] = useState<string[]>([]);
+
+  // Confetti pieces — stable across renders, only generated once
+  const confettiPieces = useMemo(() => Array.from({ length: 55 }, (_, i) => {
+    const isAmber = i % 3 !== 0; // 2/3 amber, 1/3 green — matches UI palette
+    return {
+      id: i,
+      left: Math.random() * 100,           // % across width
+      delay: Math.random() * 3.5,          // stagger over 3.5s so they don't all start at once
+      duration: 2.8 + Math.random() * 2,   // 2.8–4.8s fall
+      width: 5 + Math.random() * 9,        // 5–14px
+      height: 2.5 + Math.random() * 2.5,  // 2.5–5px
+      color: isAmber
+        ? (Math.random() > 0.45 ? "#FF9900" : "#FFB800")
+        : (Math.random() > 0.45 ? "#00FF88" : "#00CC66"),
+      rotation: Math.random() * 360,
+      drift: (Math.random() - 0.5) * 70,  // ±35px horizontal drift
+    };
+  }), []);
   const [briefingText, setBriefingText] = useState(IDLE_MESSAGES[0]);
   const [displayedText, setDisplayedText] = useState("");
   const [cursorOn, setCursorOn] = useState(true);
@@ -106,6 +124,26 @@ export default function Home() {
   // True while the user is still on an entity they just found this session —
   // prevents "already catalogued" showing before they've moved the controls
   const [lockInShownThisVisit, setLockInShownThisVisit] = useState(false);
+
+  // All-found celebration — true once every species has been catalogued and
+  // the last lock-in has finished playing
+  const [testAllFound, setTestAllFound] = useState(false);
+  const allFound = (foundIds.length === ENTITIES.length && !lockInActive) || testAllFound;
+
+  const RIKER_RESET = "You reset it. …Voluntarily. Alright. I'll be in my ready room trying to understand what just happened. Sensors are yours.";
+  const resetMsgTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [showingResetMsg, setShowingResetMsg] = useState(false);
+
+  const handleReset = useCallback(() => {
+    foundIdsRef.current = new Set();
+    setFoundIds([]);
+    setTestAllFound(false);
+    setShowingResetMsg(true);
+    setBriefingText(RIKER_RESET);
+    // Hold the reset message long enough for the typewriter to finish + a beat to read it
+    if (resetMsgTimerRef.current) clearTimeout(resetMsgTimerRef.current);
+    resetMsgTimerRef.current = setTimeout(() => setShowingResetMsg(false), 7000);
+  }, []);
 
   // Track catalogued species — only trigger lock-in once per species
   useEffect(() => {
@@ -137,8 +175,14 @@ export default function Home() {
     return () => clearInterval(t);
   }, [scanning]);
 
+  const RIKER_FINALE = "I've run this sweep a dozen times and never pulled a Borg signature in the same sector as a Ferengi. Either the universe has a sense of humour, or you do. Good work either way.";
+
   // Select the right message based on device state
   useEffect(() => {
+    // Once all species are found, set the finale line and freeze — no more updates until reset
+    if (allFound) { setBriefingText(RIKER_FINALE); return; }
+    // After reset, hold Riker's dry disbelief line until the timer clears
+    if (showingResetMsg) return;
     let msg = "";
     if (!scanning) {
       msg = IDLE_MESSAGES[idleIndex];
@@ -150,7 +194,7 @@ export default function Home() {
       if (alreadyCatalogued) {
         msg = remaining > 0
           ? `${nearestEntity.name} already catalogued. Adjust your parameters — ${remaining} species still undetected in this sector.`
-          : `All five species catalogued. Scan complete. Well done, Ensign.`;
+          : RIKER_FINALE;
       } else {
         // First contact — rarity determines the commander's tone
         if (nearestEntity.rarity === "RARE") {
@@ -158,12 +202,12 @@ export default function Home() {
         } else if (nearestEntity.rarity === "UNCOMMON") {
           msg = remaining > 0
             ? `Commander — ${nearestEntity.name} signature confirmed. ${nearestEntity.bioReading}. Unexpected. Log it. ${remaining} species remaining.`
-            : `${nearestEntity.name} confirmed — and that's the last one. ${nearestEntity.bioReading}. Sector catalogue complete.`;
+            : RIKER_FINALE;
         } else {
           // COMMON
           msg = remaining > 0
             ? `Contact confirmed — ${nearestEntity.name}. ${nearestEntity.bioReading}. Log it, Ensign. ${remaining} more species out there.`
-            : `${nearestEntity.name}. That's all five. Remarkable work, Ensign. Starfleet Command will want to see these readings.`;
+            : RIKER_FINALE;
         }
       }
     } else {
@@ -171,7 +215,7 @@ export default function Home() {
       const state = { freqMod, resCoeff, phaseShift, gain, bandFilter, polarity, scanMode };
       const unfound = getNearestUnfound(state, foundIds);
       if (!unfound) {
-        msg = "All five species catalogued. Remarkable work, Ensign.";
+        msg = "I've run this sweep a dozen times and never pulled a Borg signature in the same sector as a Ferengi. Either the universe has a sense of humour, or you do. Good work either way.";
       } else {
         const hint = getBiggestGapHint(state, unfound.entity);
         const switchIssue = getSwitchIssue(state, unfound.entity);
@@ -201,7 +245,7 @@ export default function Home() {
       }
     }
     setBriefingText(msg);
-  }, [scanning, entityFound, nearestProximity, idleIndex, nearestEntity, foundIds, lockInActive, lockInShownThisVisit, bandFilter, polarity, scanMode]);
+  }, [scanning, entityFound, nearestProximity, idleIndex, nearestEntity, foundIds, lockInActive, lockInShownThisVisit, bandFilter, polarity, scanMode, allFound, showingResetMsg]);
 
   // Typewriter — reruns whenever briefingText changes
   useEffect(() => {
@@ -674,6 +718,161 @@ export default function Home() {
                     </span>
                   </div>
                 )}
+                {/* ── All-found celebration — persists until reset ── */}
+                {allFound && (
+                  <div style={{
+                    position: "absolute",
+                    inset: 0,
+                    zIndex: 25,
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 8,
+                    background: "rgba(0,0,0,0.82)",
+                    animation: "catalogueFadeIn 1.2s ease-out forwards",
+                    overflow: "hidden",
+                  }}>
+                    {/* LCARS confetti — pill-shaped amber + green pieces */}
+                    {confettiPieces.map(p => (
+                      <div
+                        key={p.id}
+                        style={{
+                          position: "absolute",
+                          left: `${p.left}%`,
+                          top: -12,
+                          width: p.width,
+                          height: p.height,
+                          background: p.color,
+                          borderRadius: p.height / 2,
+                          opacity: 0.88,
+                          animation: `confettiFall ${p.duration}s ${p.delay}s ease-in infinite`,
+                          "--drift": `${p.drift}px`,
+                          "--rot": `${p.rotation + 540}deg`,
+                          pointerEvents: "none",
+                        } as React.CSSProperties}
+                      />
+                    ))}
+
+                    {/* Ambient glow */}
+                    <div style={{
+                      position: "absolute",
+                      inset: 0,
+                      background: "radial-gradient(ellipse 70% 55% at 50% 50%, rgba(0,255,136,0.07) 0%, transparent 70%)",
+                      pointerEvents: "none",
+                    }} />
+
+                    <span className="lcars-label" style={{
+                      color: "rgba(0,255,136,0.5)",
+                      fontSize: 8,
+                      letterSpacing: "0.3em",
+                    }}>
+                      SECTOR 001 · CATALOGUE COMPLETE
+                    </span>
+
+                    <span className="lcars-readout" style={{
+                      color: "var(--lcars-phosphor)",
+                      fontSize: 13,
+                      letterSpacing: "0.2em",
+                      textShadow: "0 0 20px rgba(0,255,136,0.7), 0 0 6px rgba(0,255,136,0.5)",
+                      animation: "sectorPulse 3s ease-in-out infinite",
+                    }}>
+                      SCAN COMPLETE
+                    </span>
+
+                    {/* Species table */}
+                    <table style={{
+                      marginTop: 8,
+                      borderCollapse: "collapse",
+                      tableLayout: "fixed",
+                      width: 220,
+                    }}>
+                      <thead>
+                        <tr>
+                          {["SPECIES", "CLASS", "RARITY"].map(col => (
+                            <th key={col} style={{
+                              fontFamily: "var(--font-lcars, monospace)",
+                              fontSize: 6,
+                              letterSpacing: "0.2em",
+                              color: "rgba(255,255,255,0.2)",
+                              fontWeight: 400,
+                              textAlign: col === "SPECIES" ? "left" : "center",
+                              paddingBottom: 4,
+                              borderBottom: "1px solid rgba(255,255,255,0.08)",
+                            }}>
+                              {col}
+                            </th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {ENTITIES.map((e, i) => (
+                          <tr key={e.id}>
+                            <td style={{
+                              fontFamily: "var(--font-lcars, monospace)",
+                              fontSize: 7,
+                              letterSpacing: "0.18em",
+                              color: e.rarity === "RARE" ? "rgba(255,153,0,0.85)" : "rgba(0,255,136,0.75)",
+                              paddingTop: i === 0 ? 6 : 3,
+                              paddingBottom: 3,
+                              paddingRight: 8,
+                            }}>
+                              {e.name}
+                            </td>
+                            <td style={{
+                              fontFamily: "var(--font-lcars, monospace)",
+                              fontSize: 6,
+                              letterSpacing: "0.12em",
+                              color: "rgba(255,255,255,0.3)",
+                              textAlign: "center",
+                              paddingTop: i === 0 ? 6 : 3,
+                              paddingBottom: 3,
+                            }}>
+                              {e.class.split("·")[0].trim()}
+                            </td>
+                            <td style={{
+                              fontFamily: "var(--font-lcars, monospace)",
+                              fontSize: 6,
+                              letterSpacing: "0.12em",
+                              color: e.rarity === "RARE" ? "rgba(255,153,0,0.5)" : "rgba(0,255,136,0.35)",
+                              textAlign: "center",
+                              paddingTop: i === 0 ? 6 : 3,
+                              paddingBottom: 3,
+                            }}>
+                              {e.rarity}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+
+                    {/* Reset button — full width of table so it sits flush */}
+                    <div
+                      onClick={handleReset}
+                      style={{
+                        marginTop: 12,
+                        width: 220,
+                        height: 28,
+                        background: "rgba(0,255,136,0.06)",
+                        border: "1px solid rgba(0,255,136,0.4)",
+                        borderRadius: 4,
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <span className="lcars-label" style={{
+                        color: "rgba(0,255,136,0.7)",
+                        fontSize: 7,
+                        letterSpacing: "0.2em",
+                      }}>
+                        RESET CATALOGUE
+                      </span>
+                    </div>
+                  </div>
+                )}
+
                 {/* Status labels overlay */}
                 <div style={{
                   position: "absolute", inset: 0,
@@ -896,6 +1095,19 @@ export default function Home() {
           0%, 100% { opacity: 0.5; }
           50% { opacity: 0.15; }
         }
+        @keyframes confettiFall {
+          0%   { transform: translateY(0)     translateX(0)             rotate(0deg);              opacity: 0.9; }
+          15%  { opacity: 1; }
+          100% { transform: translateY(340px) translateX(var(--drift))  rotate(var(--rot));        opacity: 0; }
+        }
+        @keyframes catalogueFadeIn {
+          0%   { opacity: 0; }
+          100% { opacity: 1; }
+        }
+        @keyframes sectorPulse {
+          0%, 100% { text-shadow: 0 0 20px rgba(0,255,136,0.7), 0 0 6px rgba(0,255,136,0.5); }
+          50%       { text-shadow: 0 0 30px rgba(0,255,136,0.95), 0 0 10px rgba(0,255,136,0.7); }
+        }
         @keyframes lockInFade {
           0%   { opacity: 0; }
           6%   { opacity: 1; }
@@ -915,6 +1127,27 @@ export default function Home() {
           100% { opacity: 0; transform: translateY(-2px); }
         }
       `}</style>
+
+      {/* ── Dev test button ── */}
+      <button
+        onClick={() => setTestAllFound(true)}
+        style={{
+          position: "fixed",
+          bottom: 16,
+          right: 16,
+          padding: "4px 10px",
+          background: "rgba(0,0,0,0.08)",
+          border: "1px solid rgba(0,0,0,0.15)",
+          borderRadius: 4,
+          cursor: "pointer",
+          fontFamily: "monospace",
+          fontSize: 10,
+          color: "rgba(0,0,0,0.35)",
+          letterSpacing: "0.08em",
+        }}
+      >
+        test confetti
+      </button>
 
     </main>
   );
