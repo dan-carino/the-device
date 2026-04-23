@@ -175,6 +175,17 @@ export default function Slider({
         }} />
       </div>
 
+      {/* AO shadow — contact shadow where track base meets the panel */}
+      <div style={{
+        width: 28,
+        height: 8,
+        borderRadius: "50%",
+        background: "radial-gradient(ellipse 100% 100% at 50% 0%, rgba(0,0,0,0.5) 0%, transparent 100%)",
+        filter: "blur(2px)",
+        marginTop: -4,
+        pointerEvents: "none",
+      }} />
+
       <span
         className="lcars-label"
         style={{ fontSize: 7, color: "var(--lcars-amber-dark)" }}

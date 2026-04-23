@@ -118,6 +118,27 @@ export default function RotaryDial({
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
 
+      {/* AO shadow — contact shadow where dial base meets the panel */}
+      <div style={{
+        position: "relative",
+        width: wellSize,
+        height: wellSize,
+      }}>
+      {/* Shadow ellipse sits behind the well, bleeds outward on the panel */}
+      <div style={{
+        position: "absolute",
+        bottom: -4,
+        left: "50%",
+        transform: "translateX(-50%)",
+        width: wellSize * 0.9,
+        height: 10,
+        borderRadius: "50%",
+        background: "radial-gradient(ellipse 100% 100% at 50% 0%, rgba(0,0,0,0.55) 0%, transparent 100%)",
+        filter: "blur(3px)",
+        pointerEvents: "none",
+        zIndex: 0,
+      }} />
+
       {/* Mount well — black so image backgrounds disappear seamlessly */}
       <div style={{
         position: "relative",
@@ -130,6 +151,7 @@ export default function RotaryDial({
           inset 0 0 0 1px rgba(0,0,0,0.8),
           0 1px 0 rgba(255,255,255,0.04)
         `,
+        zIndex: 1,
       }}>
 
         {/* ── Layer 1: Outer ring — STATIC, never rotates ── */}
@@ -240,6 +262,7 @@ export default function RotaryDial({
             touchAction: "none",
           }}
         />
+      </div>
       </div>
 
       <span className="lcars-label" style={{
