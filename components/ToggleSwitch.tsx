@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { playSnap } from "@/hooks/useAudioContext";
 
 interface ToggleSwitchProps {
   label: string;
@@ -20,6 +21,8 @@ export default function ToggleSwitch({
   const [active, setActive] = useState(defaultPosition);
 
   const handleClick = (i: number) => {
+    if (i === active) return; // no sound if clicking already-active position
+    playSnap();
     setActive(i);
     onChange?.(i);
   };

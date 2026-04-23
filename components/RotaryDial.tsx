@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useCallback, useEffect, useState } from "react";
+import { playTick } from "@/hooks/useAudioContext";
 
 interface RotaryDialProps {
   label: string;
@@ -34,6 +35,9 @@ export default function RotaryDial({
   const lastYRef = useRef<number | null>(null);
   const rafRef = useRef<number | null>(null);
   const dialRef = useRef<HTMLDivElement>(null);
+  // Track last angle at which a tick was played (in degrees)
+  const lastTickAngleRef = useRef(angle);
+  const TICK_INTERVAL = 5; // degrees between ticks
 
   // Keep angleRef in sync
   useEffect(() => {
@@ -44,6 +48,18 @@ export default function RotaryDial({
     if (rafRef.current !== null) {
       cancelAnimationFrame(rafRef.current);
       rafRef.current = null;
+    }
+  }, []);
+
+  // Fire a tick sound every TICK_INTERVAL degrees of travel
+  const maybeTick = useCallback((newAngle: number) => {
+    const prev = lastTickAngleRef.current;
+    const travelled = Math.abs(newAngle - prev);
+    if (travelled >= TICK_INTERVAL) {
+      // pitch slightly varies with position for organic feel
+      const pitchVariance = 800 + (newAngle / RANGE_DEG) * 200;
+      playTick(pitchVariance, 0.06);
+      lastTickAngleRef.current = newAngle;
     }
   }, []);
 
@@ -60,13 +76,14 @@ export default function RotaryDial({
         -RANGE_DEG,
         RANGE_DEG
       );
+      maybeTick(next);
       angleRef.current = next;
       setAngle(next);
       onChange?.(((next / RANGE_DEG) * 0.5 + 0.5));
       rafRef.current = requestAnimationFrame(tick);
     };
     rafRef.current = requestAnimationFrame(tick);
-  }, [stopMomentum, onChange]);
+  }, [stopMomentum, onChange, maybeTick]);
 
   const onPointerDown = useCallback(
     (e: React.PointerEvent) => {
@@ -91,12 +108,13 @@ export default function RotaryDial({
         -RANGE_DEG,
         RANGE_DEG
       );
+      maybeTick(next);
       angleRef.current = next;
       setAngle(next);
       onChange?.((next / RANGE_DEG) * 0.5 + 0.5);
       lastYRef.current = e.clientY;
     },
-    [onChange]
+    [onChange, maybeTick]
   );
 
   const onPointerUp = useCallback(() => {

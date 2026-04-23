@@ -1,11 +1,17 @@
 "use client";
 
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect, useRef } from "react";
 import RotaryDial from "@/components/RotaryDial";
 import Slider from "@/components/Slider";
 import ToggleSwitch from "@/components/ToggleSwitch";
 import Oscilloscope from "@/components/Oscilloscope";
 import { resolveEntity } from "@/data/entities";
+import {
+  startAmbientHum,
+  playInitScan,
+  playSignalDetected,
+  playEntityFound,
+} from "@/hooks/useAudioContext";
 
 export default function Home() {
   // Primary control state (0–1)
@@ -21,12 +27,23 @@ export default function Home() {
 
   // Scan state
   const [scanning, setScanning] = useState(false);
+  const audioStartedRef = useRef(false);
 
   const scanModeLabel = ["PASSIVE", "ACTIVE", "DEEP"][scanMode];
 
-  const handleInitScan = useCallback(() => {
-    setScanning(s => !s);
+  // Start ambient hum on first user interaction (any pointer down on the page)
+  const ensureAudio = useCallback(() => {
+    if (!audioStartedRef.current) {
+      audioStartedRef.current = true;
+      startAmbientHum();
+    }
   }, []);
+
+  const handleInitScan = useCallback(() => {
+    ensureAudio();
+    playInitScan();
+    setScanning(s => !s);
+  }, [ensureAudio]);
 
   // Entity proximity — recalculates on every control change
   const resolution = useMemo(
@@ -36,6 +53,24 @@ export default function Home() {
 
   const { nearestEntity, nearestProximity } = resolution;
   const entityFound = scanning && nearestProximity >= 0.7;
+
+  // Fire sounds when proximity crosses thresholds while scanning
+  const prevProximityRef = useRef(0);
+  useEffect(() => {
+    const prev = prevProximityRef.current;
+
+    if (scanning) {
+      // Crossed into partial resolution
+      if (prev < 0.3 && nearestProximity >= 0.3) {
+        playSignalDetected();
+      }
+      // Crossed into full resolution
+      if (prev < 0.7 && nearestProximity >= 0.7) {
+        playEntityFound();
+      }
+    }
+    prevProximityRef.current = nearestProximity;
+  }, [scanning, nearestProximity]);
 
   // Sensitivity derived from proximity when scanning
   const sensitivityDisplay = scanning
@@ -57,7 +92,7 @@ export default function Home() {
     }}>
 
       {/* ── The Device ─────────────────────────────────────────── */}
-      <div style={{
+      <div onPointerDown={ensureAudio} style={{
         position: "relative",
         width: 780,
         height: 520,
