@@ -166,48 +166,25 @@ export default function Home() {
             : `${nearestEntity.name}. That's all five. Remarkable work, Ensign. Starfleet Command will want to see these readings.`;
         }
       }
-    } else if (nearestProximity >= 0.5) {
-      if (foundIds.includes(nearestEntity.id) && !lockInShownThisVisit) {
-        // Near a found species — hint toward the nearest unfound one instead
-        const next = getNearestUnfound({ freqMod, resCoeff, phaseShift, gain }, foundIds);
-        if (next) {
-          const hint = getBiggestGapHint({ freqMod, resCoeff, phaseShift, gain }, next.entity);
-          msg = `That contact's already logged. Nearest undetected signature needs your ${hint.name} ${hint.dir}.`;
-        } else {
-          msg = "All five species catalogued. Remarkable work, Ensign.";
-        }
-      } else {
-        const hint = getBiggestGapHint({ freqMod, resCoeff, phaseShift, gain }, nearestEntity);
-        msg = `Almost there. Something is resolving. Fine-tune your ${hint.name} — bring it ${hint.dir}.`;
-      }
-    } else if (nearestProximity >= 0.3) {
-      if (foundIds.includes(nearestEntity.id) && !lockInShownThisVisit) {
-        const next = getNearestUnfound({ freqMod, resCoeff, phaseShift, gain }, foundIds);
-        if (next) {
-          const hint = getBiggestGapHint({ freqMod, resCoeff, phaseShift, gain }, next.entity);
-          msg = `That one's in the log. Try adjusting your ${hint.name} ${hint.dir} to pick up a new contact.`;
-        } else {
-          msg = "All five species catalogued. Remarkable work, Ensign.";
-        }
-      } else {
-        const hint = getBiggestGapHint({ freqMod, resCoeff, phaseShift, gain }, nearestEntity);
-        msg = `Hold on — I'm reading a biosignature. Your ${hint.name} is off. Adjust it ${hint.dir} and hold your position.`;
-      }
-    } else if (nearestProximity >= 0.1) {
-      if (foundIds.includes(nearestEntity.id) && !lockInShownThisVisit) {
-        const next = getNearestUnfound({ freqMod, resCoeff, phaseShift, gain }, foundIds);
-        if (next) {
-          const hint = getBiggestGapHint({ freqMod, resCoeff, phaseShift, gain }, next.entity);
-          msg = `Already logged. Start with your ${hint.name} — bring it ${hint.dir} to find a new signature.`;
-        } else {
-          msg = "All five species catalogued. Remarkable work, Ensign.";
-        }
-      } else {
-        const hint = getBiggestGapHint({ freqMod, resCoeff, phaseShift, gain }, nearestEntity);
-        msg = `Something faint on the edge of sensors. Start with your ${hint.name} — try turning it ${hint.dir}.`;
-      }
     } else {
-      msg = "Nothing on sensors yet. The frequency modulation dial is your broadest search parameter. Start there.";
+      // Below entityFound threshold — always hint toward the nearest UNFOUND species.
+      // Proximity bands are based on how close the unfound entity is, not the found one.
+      // Computed inline so hints update fresh each run without adding control values to deps.
+      const unfound = getNearestUnfound({ freqMod, resCoeff, phaseShift, gain }, foundIds);
+      if (!unfound) {
+        msg = "All five species catalogued. Remarkable work, Ensign.";
+      } else if (unfound.proximity >= 0.5) {
+        const hint = getBiggestGapHint({ freqMod, resCoeff, phaseShift, gain }, unfound.entity);
+        msg = `Almost there. Something is resolving. Fine-tune your ${hint.name} — bring it ${hint.dir}.`;
+      } else if (unfound.proximity >= 0.3) {
+        const hint = getBiggestGapHint({ freqMod, resCoeff, phaseShift, gain }, unfound.entity);
+        msg = `Hold on — I'm reading a biosignature. Your ${hint.name} is off. Adjust it ${hint.dir} and hold your position.`;
+      } else if (unfound.proximity >= 0.1) {
+        const hint = getBiggestGapHint({ freqMod, resCoeff, phaseShift, gain }, unfound.entity);
+        msg = `Something faint on the edge of sensors. Start with your ${hint.name} — try turning it ${hint.dir}.`;
+      } else {
+        msg = "Nothing on sensors yet. The frequency modulation dial is your broadest search parameter. Start there.";
+      }
     }
     setBriefingText(msg);
   }, [scanning, entityFound, nearestProximity, idleIndex, nearestEntity, foundIds, lockInActive, lockInShownThisVisit]);
