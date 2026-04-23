@@ -494,29 +494,28 @@ export default function Home() {
               ))}
             </div>
             <div style={{ height: 40, background: "linear-gradient(160deg, #CC7000 0%, #B85E00 55%, #963D00 100%)", borderRadius: "0 0 12px 0", boxShadow: "0 0 16px rgba(200,90,0,0.35), 0 0 5px rgba(220,110,0,0.25)" }}>
-              {/* Alert light — stacked bloom + breathing pulse */}
+              {/* Alert light — physical LED dome */}
               <div style={{
                 width: 10, height: 10,
                 borderRadius: "50%",
-                background: entityFound
-                  ? "var(--lcars-phosphor)"
-                  : scanning
-                    ? "var(--lcars-phosphor)"
-                    : "var(--lcars-red)",
-                // entity-found gets a steady bright bloom; animated states handled by keyframes
+                // Off: dark unlit plastic. On: white-hot core bleeding to saturated colour.
+                background: (entityFound || scanning)
+                  ? "radial-gradient(circle at 40% 35%, #ffffff 0%, #4aff7a 35%, #00cc55 100%)"
+                  : "radial-gradient(circle at 40% 35%, #4a1515 0%, #1e0404 100%)",
                 boxShadow: entityFound
-                  ? `0 0 4px var(--lcars-phosphor),
-                     0 0 14px rgba(0,255,136,0.85),
-                     0 0 28px rgba(0,255,136,0.55),
-                     0 0 50px rgba(0,255,136,0.28)`
-                  : undefined,
-                margin: "15px auto 0",
-                animation: entityFound
-                  ? "none"
+                  ? `inset 0 0 4px rgba(255,255,255,0.8),
+                     0 0 6px #4aff7a,
+                     0 0 18px rgba(0,255,136,0.7),
+                     0 0 40px rgba(0,255,136,0.35)`
                   : scanning
-                    ? "scanBreath 1.4s ease-in-out infinite"
-                    : "alertBreath 2.6s ease-in-out infinite",
-                transition: "background 0.3s",
+                    ? undefined  // animation handles box-shadow
+                    : `inset 0 2px 3px rgba(0,0,0,0.6),
+                       inset 0 -1px 1px rgba(255,255,255,0.08),
+                       inset 0px 1px 1px rgba(255,255,255,0.35),
+                       0 1px 0 rgba(255,255,255,0.08)`,
+                margin: "15px auto 0",
+                animation: scanning && !entityFound ? "scanBreath 1.4s ease-in-out infinite" : "none",
+                transition: "background 0.4s, box-shadow 0.4s",
               }} />
             </div>
           </div>
@@ -865,28 +864,17 @@ export default function Home() {
       }} />
 
       <style>{`
-        @keyframes alertBreath {
-          0%, 100% {
-            box-shadow: 0 0 3px var(--lcars-red),
-                        0 0 8px rgba(255,50,0,0.35);
-          }
-          50% {
-            box-shadow: 0 0 6px var(--lcars-red),
-                        0 0 18px rgba(255,60,0,0.65),
-                        0 0 36px rgba(255,50,0,0.28),
-                        0 0 60px rgba(255,40,0,0.12);
-          }
-        }
         @keyframes scanBreath {
           0%, 100% {
-            box-shadow: 0 0 4px var(--lcars-phosphor),
-                        0 0 12px rgba(0,255,136,0.45);
+            box-shadow: inset 0 0 3px rgba(255,255,255,0.5),
+                        0 0 5px #4aff7a,
+                        0 0 12px rgba(0,255,136,0.5);
           }
           50% {
-            box-shadow: 0 0 8px var(--lcars-phosphor),
-                        0 0 22px rgba(0,255,136,0.75),
-                        0 0 42px rgba(0,255,136,0.35),
-                        0 0 70px rgba(0,255,136,0.15);
+            box-shadow: inset 0 0 4px rgba(255,255,255,0.9),
+                        0 0 8px #4aff7a,
+                        0 0 22px rgba(0,255,136,0.8),
+                        0 0 42px rgba(0,255,136,0.35);
           }
         }
         @keyframes textBlink {
