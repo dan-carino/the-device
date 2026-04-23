@@ -290,6 +290,24 @@ export default function Home() {
         </p>
       </div>
 
+      {/* ── SVG noise filter — defined once, referenced by the texture overlay ── */}
+      <svg width="0" height="0" style={{ position: "absolute" }}>
+        <defs>
+          <filter id="chassis-noise" x="0%" y="0%" width="100%" height="100%" colorInterpolationFilters="sRGB">
+            <feTurbulence
+              type="fractalNoise"
+              baseFrequency="0.72"
+              numOctaves="4"
+              stitchTiles="stitch"
+              result="noise"
+            />
+            <feColorMatrix type="saturate" values="0" in="noise" result="greyNoise" />
+            <feBlend in="SourceGraphic" in2="greyNoise" mode="overlay" result="blended" />
+            <feComposite in="blended" in2="SourceGraphic" operator="in" />
+          </filter>
+        </defs>
+      </svg>
+
       {/* ── The Device ─────────────────────────────────────────── */}
       <div
         onPointerDown={ensureAudio}
@@ -337,6 +355,18 @@ export default function Home() {
           width: 1,
           background: "linear-gradient(180deg, transparent 0%, rgba(255,255,255,0.09) 20%, rgba(255,255,255,0.09) 80%, transparent 100%)",
           zIndex: 10,
+        }} />
+
+        {/* Chassis surface texture — fine noise grain over the dark panel */}
+        <div style={{
+          position: "absolute",
+          inset: 0,
+          borderRadius: 18,
+          opacity: 0.045,
+          filter: "url(#chassis-noise)",
+          background: "#ffffff",
+          pointerEvents: "none",
+          zIndex: 1,
         }} />
 
         {/* Bottom edge — in shadow, darker */}
