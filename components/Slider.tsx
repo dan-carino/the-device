@@ -138,15 +138,6 @@ export default function Slider({
           touchAction: "none",
         }}
       >
-        {/* Left wall highlight — key light grazes the left inner face of the slot */}
-        <div style={{
-          position: "absolute",
-          top: 2, left: 0, bottom: 2,
-          width: 1,
-          background: "linear-gradient(180deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.08) 60%, transparent 100%)",
-          pointerEvents: "none",
-        }} />
-
         {/* Fill bar — shows current level */}
         <div
           style={{
