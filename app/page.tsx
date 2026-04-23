@@ -382,33 +382,56 @@ export default function Home() {
           alignItems: "center",
           flexShrink: 0,
         }}>
-          {/* Left rounded cap */}
+          {/* Left rounded cap — backlit amber pill */}
           <div style={{
             width: 120,
             height: 28,
-            background: "var(--lcars-amber)",
+            background: "#FF9900",
             borderRadius: 14,
+            border: "1px solid rgba(255,210,80,0.55)",
+            boxShadow: `
+              inset 0 0 14px rgba(255,153,0,0.65),
+              inset 0 1px 4px rgba(255,220,100,0.4),
+              0 0 22px rgba(255,120,0,0.45),
+              0 0 8px rgba(255,153,0,0.35)
+            `,
           }} />
-          <div style={{ width: 3, height: 28, background: "var(--lcars-amber-dark)", borderRadius: 2 }} />
-          {/* Long strip */}
+          <div style={{ width: 3, height: 28, background: "rgba(180,90,0,0.9)", borderRadius: 2, boxShadow: "0 0 6px rgba(255,100,0,0.3)" }} />
+          {/* Long strip — backlit amber-dark bar */}
           <div style={{
             flex: 1,
             height: 28,
-            background: "var(--lcars-amber-dark)",
+            background: "#CC6600",
+            border: "1px solid rgba(230,140,30,0.4)",
+            borderRadius: 2,
             display: "flex",
             alignItems: "center",
             paddingLeft: 12,
+            boxShadow: `
+              inset 0 0 16px rgba(204,102,0,0.6),
+              inset 0 1px 3px rgba(255,160,40,0.3),
+              0 0 16px rgba(200,90,0,0.35),
+              0 0 5px rgba(220,110,0,0.25)
+            `,
           }}>
-            <span className="lcars-label" style={{ color: "rgba(0,0,0,0.6)" }}>
+            <span className="lcars-label" style={{ color: "rgba(0,0,0,0.7)" }}>
               BIO-SCANNER UNIT CLASS IV — STARDATE 47634.44
             </span>
           </div>
-          <div style={{ width: 3, height: 28, background: "var(--lcars-blue)", borderRadius: 2 }} />
+          <div style={{ width: 3, height: 28, background: "rgba(100,100,220,0.9)", borderRadius: 2, boxShadow: "0 0 6px rgba(130,130,255,0.35)" }} />
+          {/* Right rounded cap — backlit blue pill */}
           <div style={{
             width: 60,
             height: 28,
-            background: "var(--lcars-blue)",
+            background: "#9999FF",
             borderRadius: 14,
+            border: "1px solid rgba(200,200,255,0.55)",
+            boxShadow: `
+              inset 0 0 14px rgba(153,153,255,0.65),
+              inset 0 1px 4px rgba(210,210,255,0.4),
+              0 0 22px rgba(120,120,255,0.45),
+              0 0 8px rgba(153,153,255,0.35)
+            `,
           }} />
         </div>
 
@@ -432,19 +455,29 @@ export default function Home() {
           }}>
             <div style={{
               flex: 1,
-              background: "var(--lcars-amber)",
+              background: "#FF9900",
               borderRadius: "0 0 0 12px",
+              border: "1px solid rgba(255,210,80,0.45)",
+              borderTop: "none",
+              borderLeft: "none",
               display: "flex",
               flexDirection: "column",
               justifyContent: "space-between",
               alignItems: "flex-end",
               padding: "10px 8px",
+              boxShadow: `
+                inset 0 0 28px rgba(255,153,0,0.7),
+                inset -2px 0 10px rgba(255,120,0,0.35),
+                inset 0 2px 6px rgba(255,220,100,0.3),
+                0 0 28px rgba(255,120,0,0.45),
+                0 0 10px rgba(255,153,0,0.35)
+              `,
             }}>
               {["BIO", "FREQ", "LIFE", "SIG"].map(l => (
-                <span key={l} className="lcars-label" style={{ color: "rgba(0,0,0,0.55)", fontSize: 7 }}>{l}</span>
+                <span key={l} className="lcars-label" style={{ color: "rgba(0,0,0,0.65)", fontSize: 7 }}>{l}</span>
               ))}
             </div>
-            <div style={{ height: 40, background: "var(--lcars-amber-dark)", borderRadius: "0 0 12px 0" }}>
+            <div style={{ height: 40, background: "#CC6600", borderRadius: "0 0 12px 0", border: "1px solid rgba(230,140,30,0.35)", borderTop: "none", borderLeft: "none", boxShadow: "inset 0 0 14px rgba(204,102,0,0.6), 0 0 16px rgba(200,90,0,0.35), 0 0 5px rgba(220,110,0,0.25)" }}>
               {/* Alert light — stacked bloom + breathing pulse */}
               <div style={{
                 width: 10, height: 10,
@@ -765,22 +798,32 @@ export default function Home() {
           <div style={{
             width: 40,
             flexShrink: 0,
-            background: "var(--lcars-blue)",
+            background: "#9999FF",
             borderRadius: "0 0 12px 0",
+            border: "1px solid rgba(200,200,255,0.45)",
+            borderTop: "none",
+            borderRight: "none",
             display: "flex",
             flexDirection: "column",
             justifyContent: "space-between",
             alignItems: "center",
             padding: "10px 0",
+            boxShadow: `
+              inset 0 0 28px rgba(153,153,255,0.7),
+              inset 2px 0 10px rgba(120,120,255,0.35),
+              inset 0 2px 6px rgba(210,210,255,0.3),
+              0 0 28px rgba(120,120,255,0.45),
+              0 0 10px rgba(153,153,255,0.35)
+            `,
           }}>
             <div style={{ display: "flex", flexDirection: "column", gap: 6, alignItems: "center" }}>
               {["STA", "TUS"].map(t => (
-                <span key={t} className="lcars-label" style={{ color: "rgba(0,0,0,0.5)", fontSize: 7 }}>{t}</span>
+                <span key={t} className="lcars-label" style={{ color: "rgba(0,0,0,0.65)", fontSize: 7 }}>{t}</span>
               ))}
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 6, alignItems: "center" }}>
               {["CLS", "CFM"].map(t => (
-                <span key={t} className="lcars-label" style={{ color: "rgba(0,0,0,0.5)", fontSize: 7 }}>{t}</span>
+                <span key={t} className="lcars-label" style={{ color: "rgba(0,0,0,0.65)", fontSize: 7 }}>{t}</span>
               ))}
             </div>
           </div>
