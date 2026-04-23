@@ -123,7 +123,8 @@ export default function Slider({
           // Side and bottom edges are dark (slot walls in shadow)
           // Top edge is bright — the rim of the routed opening catches the key light
           border: "1px solid rgba(0,0,0,0.85)",
-          borderTop: "1px solid rgba(255,255,255,0.35)",
+          borderTop: "1px solid rgba(0,0,0,0.95)",
+          borderBottom: "1px solid rgba(255,255,255,0.25)",
           boxShadow: `
             inset 0 6px 14px rgba(0,0,0,0.95),
             inset 0 2px 4px rgba(0,0,0,0.9),
@@ -137,14 +138,13 @@ export default function Slider({
           touchAction: "none",
         }}
       >
-        {/* Slot top-rim highlight — bright line just inside the opening,
-            the near face of the groove edge catching overhead light */}
+        {/* Slot bottom-rim highlight — lower lip faces upward, catches key light */}
         <div style={{
           position: "absolute",
-          top: 0, left: 1, right: 1,
+          bottom: 0, left: 1, right: 1,
           height: 1,
-          background: "rgba(255,255,255,0.25)",
-          borderRadius: "6px 6px 0 0",
+          background: "rgba(255,255,255,0.2)",
+          borderRadius: "0 0 6px 6px",
           pointerEvents: "none",
         }} />
 
