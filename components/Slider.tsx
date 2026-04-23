@@ -118,14 +118,17 @@ export default function Slider({
         style={{
           width: 20,
           height: TRACK_HEIGHT,
-          background: "linear-gradient(180deg, #060606 0%, #0c0c0c 100%)",
+          background: "linear-gradient(180deg, #040404 0%, #0a0a0a 100%)",
           borderRadius: 6,
-          border: "1px solid rgba(0,0,0,0.8)",
-          borderTop: "1px solid rgba(0,0,0,0.95)",
+          // Side and bottom edges are dark (slot walls in shadow)
+          // Top edge is bright — the rim of the routed opening catches the key light
+          border: "1px solid rgba(0,0,0,0.85)",
+          borderTop: "1px solid rgba(255,255,255,0.13)",
           boxShadow: `
-            inset 0 3px 8px rgba(0,0,0,0.9),
-            inset 0 0 0 1px rgba(0,0,0,0.6),
-            0 1px 0 rgba(255,255,255,0.03)
+            inset 0 6px 14px rgba(0,0,0,0.95),
+            inset 0 2px 4px rgba(0,0,0,0.9),
+            inset 1px 0 6px rgba(0,0,0,0.5),
+            inset -1px 0 4px rgba(0,0,0,0.4)
             ${dragging ? ", 0 0 10px rgba(255,153,0,0.12)" : ""}
           `,
           position: "relative",
@@ -134,6 +137,26 @@ export default function Slider({
           touchAction: "none",
         }}
       >
+        {/* Slot top-rim highlight — bright line just inside the opening,
+            the near face of the groove edge catching overhead light */}
+        <div style={{
+          position: "absolute",
+          top: 0, left: 1, right: 1,
+          height: 1,
+          background: "rgba(255,255,255,0.09)",
+          borderRadius: "6px 6px 0 0",
+          pointerEvents: "none",
+        }} />
+
+        {/* Left wall highlight — key light grazes the left inner face of the slot */}
+        <div style={{
+          position: "absolute",
+          top: 2, left: 0, bottom: 2,
+          width: 1,
+          background: "linear-gradient(180deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0.03) 60%, transparent 100%)",
+          pointerEvents: "none",
+        }} />
+
         {/* Fill bar — shows current level */}
         <div
           style={{
