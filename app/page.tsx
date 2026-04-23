@@ -212,34 +212,6 @@ export default function Home() {
     return () => clearInterval(t);
   }, []);
 
-  // ── Mouse tilt + dynamic glare ───────────────────────────────────
-  // Direct DOM refs — zero React re-renders on mousemove
-  const deviceRef   = useRef<HTMLDivElement>(null);
-  const glareRef    = useRef<HTMLDivElement>(null);
-  const tiltRafRef  = useRef<number | null>(null);
-
-  const BASE_TRANSFORM = "perspective(1100px) rotateX(2.5deg) rotateY(0deg)";
-  const BASE_GLARE     = "radial-gradient(ellipse 65% 50% at 38% 28%, rgba(255,255,255,0.055) 0%, rgba(255,255,255,0.018) 45%, transparent 70%)";
-
-  const handleDeviceMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    if (tiltRafRef.current) return;
-    const rect = e.currentTarget.getBoundingClientRect();
-    const nx = (e.clientX - rect.left - rect.width  / 2) / (rect.width  / 2);
-    const ny = (e.clientY - rect.top  - rect.height / 2) / (rect.height / 2);
-    tiltRafRef.current = requestAnimationFrame(() => {
-      if (glareRef.current) {
-        glareRef.current.style.background =
-          `radial-gradient(ellipse 65% 50% at ${38 + nx * 22}% ${28 + ny * 18}%, rgba(255,255,255,0.072) 0%, rgba(255,255,255,0.02) 45%, transparent 70%)`;
-      }
-      tiltRafRef.current = null;
-    });
-  }, []);
-
-  const handleDeviceMouseLeave = useCallback(() => {
-    if (tiltRafRef.current) { cancelAnimationFrame(tiltRafRef.current); tiltRafRef.current = null; }
-    if (glareRef.current) glareRef.current.style.background = BASE_GLARE;
-  }, []);
-
   // Lock-in overlay colours — RARE (Borg) gets amber warning, others get phosphor green
   const lockInColors = lockInEntity.rarity === "RARE"
     ? { glow: "rgba(255,153,0,0.22)", label: "rgba(255,153,0,0.7)", name: "#FF9900", nameShadow: "0 0 28px rgba(255,153,0,0.9), 0 0 10px rgba(255,153,0,0.7)", bio: "rgba(255,153,0,0.55)" }
@@ -320,10 +292,7 @@ export default function Home() {
 
       {/* ── The Device ─────────────────────────────────────────── */}
       <div
-        ref={deviceRef}
         onPointerDown={ensureAudio}
-        onMouseMove={handleDeviceMouseMove}
-        onMouseLeave={handleDeviceMouseLeave}
         style={{
           position: "relative",
           width: 780,
@@ -340,7 +309,7 @@ export default function Home() {
             0 100px 140px rgba(0,0,0,0.16),
             -3px 6px 20px rgba(0,0,0,0.4)
           `,
-          transform: BASE_TRANSFORM,
+          transform: "perspective(1100px) rotateX(2.5deg) rotateY(0deg)",
           transformOrigin: "center 55%",
           display: "flex",
           flexDirection: "column",
@@ -369,20 +338,6 @@ export default function Home() {
           background: "linear-gradient(180deg, transparent 0%, rgba(255,255,255,0.09) 20%, rgba(255,255,255,0.09) 80%, transparent 100%)",
           zIndex: 10,
         }} />
-
-        {/* ── Dynamic glare — shifts with mouse to simulate overhead light ── */}
-        <div
-          ref={glareRef}
-          style={{
-            position: "absolute",
-            inset: 0,
-            borderRadius: 18,
-            background: BASE_GLARE,
-            pointerEvents: "none",
-            zIndex: 6,
-            // transition handled by RAF for perf; only transition on mouse-leave
-          }}
-        />
 
         {/* Bottom edge — in shadow, darker */}
         <div style={{
@@ -490,7 +445,7 @@ export default function Home() {
               ))}
             </div>
             <div style={{ height: 40, background: "var(--lcars-amber-dark)", borderRadius: "0 0 12px 0" }}>
-              {/* Alert light */}
+              {/* Alert light — stacked bloom + breathing pulse */}
               <div style={{
                 width: 10, height: 10,
                 borderRadius: "50%",
@@ -499,18 +454,20 @@ export default function Home() {
                   : scanning
                     ? "var(--lcars-phosphor)"
                     : "var(--lcars-red)",
+                // entity-found gets a steady bright bloom; animated states handled by keyframes
                 boxShadow: entityFound
-                  ? "0 0 14px var(--lcars-phosphor), 0 0 4px var(--lcars-phosphor)"
-                  : scanning
-                    ? "0 0 10px var(--lcars-phosphor)"
-                    : "0 0 8px var(--lcars-red)",
+                  ? `0 0 4px var(--lcars-phosphor),
+                     0 0 14px rgba(0,255,136,0.85),
+                     0 0 28px rgba(0,255,136,0.55),
+                     0 0 50px rgba(0,255,136,0.28)`
+                  : undefined,
                 margin: "15px auto 0",
                 animation: entityFound
                   ? "none"
                   : scanning
-                    ? "scanPulse 1s ease-in-out infinite"
-                    : "alertPulse 2s ease-in-out infinite",
-                transition: "background 0.3s, box-shadow 0.3s",
+                    ? "scanBreath 1.4s ease-in-out infinite"
+                    : "alertBreath 2.6s ease-in-out infinite",
+                transition: "background 0.3s",
               }} />
             </div>
           </div>
@@ -855,13 +812,29 @@ export default function Home() {
       }} />
 
       <style>{`
-        @keyframes alertPulse {
-          0%, 100% { opacity: 1; box-shadow: 0 0 8px var(--lcars-red); }
-          50% { opacity: 0.25; box-shadow: 0 0 2px var(--lcars-red); }
+        @keyframes alertBreath {
+          0%, 100% {
+            box-shadow: 0 0 3px var(--lcars-red),
+                        0 0 8px rgba(255,50,0,0.35);
+          }
+          50% {
+            box-shadow: 0 0 6px var(--lcars-red),
+                        0 0 18px rgba(255,60,0,0.65),
+                        0 0 36px rgba(255,50,0,0.28),
+                        0 0 60px rgba(255,40,0,0.12);
+          }
         }
-        @keyframes scanPulse {
-          0%, 100% { opacity: 1; box-shadow: 0 0 12px var(--lcars-phosphor); }
-          50% { opacity: 0.4; box-shadow: 0 0 4px var(--lcars-phosphor); }
+        @keyframes scanBreath {
+          0%, 100% {
+            box-shadow: 0 0 4px var(--lcars-phosphor),
+                        0 0 12px rgba(0,255,136,0.45);
+          }
+          50% {
+            box-shadow: 0 0 8px var(--lcars-phosphor),
+                        0 0 22px rgba(0,255,136,0.75),
+                        0 0 42px rgba(0,255,136,0.35),
+                        0 0 70px rgba(0,255,136,0.15);
+          }
         }
         @keyframes textBlink {
           0%, 100% { opacity: 0.5; }
