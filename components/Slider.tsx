@@ -103,8 +103,7 @@ export default function Slider({
   useEffect(() => () => stopMomentum(), [stopMomentum]);
 
   // Thumb position: value=0 → bottom, value=1 → top
-  // bottom% = (1 - value) * TRAVEL, expressed as percentage of track height
-  const thumbBottom = `${((1 - value) * TRAVEL) / TRACK_HEIGHT * 100}%`;
+  const thumbBottom = `${(value * TRAVEL) / TRACK_HEIGHT * 100}%`;
 
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>

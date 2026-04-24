@@ -169,8 +169,20 @@ function requirementsMet(state: DeviceState, entity: Entity): boolean {
   return true;
 }
 
+// Rarity → numeric rank for difficulty ordering (lower = easier)
+const RARITY_RANK: Record<string, number> = {
+  COMMON: 0,
+  UNCOMMON: 1,
+  RARE: 2,
+  ANOMALOUS: 3,
+};
+
 /**
- * Returns the nearest entity that has NOT yet been catalogued, plus its proximity.
+ * Returns the best entity to hint toward for the given unfound set:
+ * — If the user is already "warm" on any unfound entity (proximity ≥ 0.3), follow
+ *   the hottest signal so hints stay relevant to what they're doing.
+ * — Otherwise default to the easiest unfound entity (lowest rarity rank), so Riker
+ *   never leads with Borg hints when the player hasn't found Klingon yet.
  * Returns null if all entities have been found.
  */
 export function getNearestUnfound(
@@ -180,13 +192,22 @@ export function getNearestUnfound(
   const unfound = ENTITIES.filter(e => !foundIds.includes(e.id));
   if (unfound.length === 0) return null;
 
-  let best = unfound[0];
-  let bestProx = proximityTo(state, unfound[0]);
-  for (const entity of unfound.slice(1)) {
-    const prox = proximityTo(state, entity);
-    if (prox > bestProx) { best = entity; bestProx = prox; }
+  const withProx = unfound.map(e => ({ entity: e, proximity: proximityTo(state, e) }));
+
+  // If the user is already warm on at least one entity, hint toward the hottest one
+  const warm = withProx.filter(x => x.proximity >= 0.3);
+  if (warm.length > 0) {
+    return warm.reduce((best, x) => (x.proximity > best.proximity ? x : best));
   }
-  return { entity: best, proximity: bestProx };
+
+  // Cold — guide toward the easiest unfound entity; ties broken by highest proximity
+  return withProx.reduce((best, x) => {
+    const bestRank = RARITY_RANK[best.entity.rarity];
+    const xRank    = RARITY_RANK[x.entity.rarity];
+    if (xRank < bestRank) return x;
+    if (xRank > bestRank) return best;
+    return x.proximity > best.proximity ? x : best;
+  });
 }
 
 export function resolveEntity(state: DeviceState): ResolverResult {

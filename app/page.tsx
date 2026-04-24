@@ -84,9 +84,9 @@ export default function Home() {
 
   // ── Commander briefing system ────────────────────────────────────
   const IDLE_MESSAGES = [
-    "Ensign. The device before you is a bio-scanner. We're detecting anomalous biosignatures in this sector — Klingon, Romulan, possibly worse. Initialise a scan when ready.",
+    "Ensign. The device before you is a bio-scanner. We're detecting anomalous biosignatures in this sector. Initialise a scan when ready.",
     "Primary search parameters: frequency modulation and resonance coefficient. Phase shift controls dimensional depth. You'll need all three axes to isolate a species signature.",
-    "Intel places at least five known species in this region. Some are common. One is unlike anything in Starfleet's records. The scanner will find them — if you know how to use it.",
+    "Intel places at least five known species in this region. Some are common. Some are… not. The scanner will find them — if you know how to use it.",
     "These signatures don't announce themselves. Adjust the dials, initialise a scan, and watch the oscilloscope. You'll know when you've locked on.",
   ];
 

@@ -84,7 +84,7 @@ export default function RotaryDial({
       return;
     }
     if (lastYRef.current === null) return;
-    const delta = (lastYRef.current - e.clientY) / PX_PER_DEG;
+    const delta = (e.clientY - lastYRef.current) / PX_PER_DEG;
     velocityRef.current = delta * 0.6;
     const next = clamp(angleRef.current + delta, -RANGE_DEG, RANGE_DEG);
     maybeTick(next);
